@@ -1,46 +1,47 @@
-import EditView from 'views/settings/record/edit';
+define(['views/settings/record/edit'], (Dep) => {
 
-export default class PwaSettingsView extends EditView {
+    return class extends Dep {
 
-    detailLayout = [
-        {
-            label: 'General',
-            rows: [
-                [
-                    {name: 'pwaEnabled'},
-                    {name: 'pwaIcon'},
+        detailLayout = [
+            {
+                label: 'General',
+                rows: [
+                    [
+                        {name: 'pwaEnabled'},
+                        {name: 'pwaIcon'},
+                    ],
+                    [
+                        {name: 'pwaAppName'},
+                        {name: 'pwaShortName'},
+                    ],
+                    [
+                        {name: 'pwaThemeColor'},
+                        {name: 'pwaBackgroundColor'},
+                    ],
                 ],
-                [
-                    {name: 'pwaAppName'},
-                    {name: 'pwaShortName'},
+            },
+            {
+                label: 'Push Notifications',
+                rows: [
+                    [
+                        {name: 'pwaPushEnabled'},
+                        {name: 'pwaPushNotificationTypes'},
+                    ],
+                    [
+                        {name: 'pwaVapidPublicKey'},
+                        false,
+                    ],
                 ],
-                [
-                    {name: 'pwaThemeColor'},
-                    {name: 'pwaBackgroundColor'},
+            },
+            {
+                label: 'Statistics',
+                rows: [
+                    [
+                        {name: 'pwaStatsEnabled'},
+                        false,
+                    ],
                 ],
-            ],
-        },
-        {
-            label: 'Push Notifications',
-            rows: [
-                [
-                    {name: 'pwaPushEnabled'},
-                    {name: 'pwaPushNotificationTypes'},
-                ],
-                [
-                    {name: 'pwaVapidPublicKey'},
-                    false,
-                ],
-            ],
-        },
-        {
-            label: 'Statistics',
-            rows: [
-                [
-                    {name: 'pwaStatsEnabled'},
-                    false,
-                ],
-            ],
-        },
-    ];
-}
+            },
+        ];
+    };
+});

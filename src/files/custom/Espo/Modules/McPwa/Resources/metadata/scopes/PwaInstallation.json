@@ -8,5 +8,5 @@
     "customizable": false,
     "importable": false,
     "layouts": true,
-    "object": false
+    "object": true
 }

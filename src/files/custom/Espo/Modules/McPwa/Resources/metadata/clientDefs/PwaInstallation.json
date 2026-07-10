@@ -1,4 +1,5 @@
 {
+    "controller": "controllers/record",
     "createDisabled": true,
     "editDisabled": true,
     "duplicateDisabled": true,
