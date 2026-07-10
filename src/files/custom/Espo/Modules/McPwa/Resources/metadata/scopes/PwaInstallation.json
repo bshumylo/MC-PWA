@@ -1,0 +1,12 @@
+{
+    "entity": true,
+    "type": "Base",
+    "module": "McPwa",
+    "acl": true,
+    "aclPortal": false,
+    "tab": false,
+    "customizable": false,
+    "importable": false,
+    "layouts": true,
+    "object": false
+}

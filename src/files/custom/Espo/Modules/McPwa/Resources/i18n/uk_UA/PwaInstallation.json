@@ -1,0 +1,21 @@
+{
+    "fields": {
+        "name": "Назва",
+        "anonymousId": "Анонімний ID",
+        "platform": "Платформа",
+        "osVersion": "Версія ОС",
+        "deviceType": "Тип пристрою",
+        "language": "Мова",
+        "userAgent": "User Agent",
+        "installedAt": "Встановлено",
+        "lastSeenAt": "Остання активність"
+    },
+    "options": {
+        "deviceType": {
+            "phone": "Телефон",
+            "tablet": "Планшет",
+            "desktop": "Комп'ютер",
+            "other": "Інше"
+        }
+    }
+}

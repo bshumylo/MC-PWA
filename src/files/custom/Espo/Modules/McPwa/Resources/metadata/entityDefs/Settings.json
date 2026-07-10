@@ -1,0 +1,58 @@
+{
+    "fields": {
+        "pwaEnabled": {
+            "type": "bool",
+            "tooltip": true
+        },
+        "pwaAppName": {
+            "type": "varchar",
+            "maxLength": 100,
+            "tooltip": true
+        },
+        "pwaShortName": {
+            "type": "varchar",
+            "maxLength": 30,
+            "tooltip": true
+        },
+        "pwaThemeColor": {
+            "type": "varchar",
+            "maxLength": 9,
+            "tooltip": true
+        },
+        "pwaBackgroundColor": {
+            "type": "varchar",
+            "maxLength": 9,
+            "tooltip": true
+        },
+        "pwaIcon": {
+            "type": "image",
+            "tooltip": true
+        },
+        "pwaPushEnabled": {
+            "type": "bool",
+            "tooltip": true
+        },
+        "pwaPushNotificationTypes": {
+            "type": "multiEnum",
+            "options": [
+                "Assign",
+                "EmailReceived",
+                "Message",
+                "Note",
+                "MentionInPost",
+                "System"
+            ],
+            "tooltip": true
+        },
+        "pwaStatsEnabled": {
+            "type": "bool",
+            "tooltip": true
+        },
+        "pwaVapidPublicKey": {
+            "type": "varchar",
+            "maxLength": 255,
+            "readOnly": true,
+            "tooltip": true
+        }
+    }
+}

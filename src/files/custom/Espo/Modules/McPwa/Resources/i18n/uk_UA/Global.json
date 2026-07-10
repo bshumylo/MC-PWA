@@ -1,0 +1,22 @@
+{
+    "scopeNames": {
+        "PwaSubscription": "Push-підписка PWA",
+        "PwaInstallation": "Встановлення PWA"
+    },
+    "scopeNamesPlural": {
+        "PwaSubscription": "Push-підписки PWA",
+        "PwaInstallation": "Встановлення PWA"
+    },
+    "labels": {
+        "Push Notifications": "Push-сповіщення",
+        "Statistics": "Статистика"
+    },
+    "mcPwaPush": {
+        "assignedToYou": "Призначено вам",
+        "newEmail": "Новий email",
+        "newMessage": "Нове повідомлення",
+        "newPost": "Новий пост",
+        "youWereMentioned": "Вас згадали",
+        "newNotification": "Нове сповіщення"
+    }
+}

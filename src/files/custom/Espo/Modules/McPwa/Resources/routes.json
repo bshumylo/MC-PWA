@@ -1,0 +1,12 @@
+[
+    {
+        "route": "/McPwa/subscription",
+        "method": "post",
+        "actionClassName": "Espo\\Modules\\McPwa\\Api\\PostSubscription"
+    },
+    {
+        "route": "/McPwa/stats",
+        "method": "post",
+        "actionClassName": "Espo\\Modules\\McPwa\\Api\\PostStats"
+    }
+]

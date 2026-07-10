@@ -1,0 +1,36 @@
+{
+    "fields": {
+        "pwaEnabled": "PWA Enabled",
+        "pwaAppName": "App Name",
+        "pwaShortName": "Short Name",
+        "pwaThemeColor": "Theme Color",
+        "pwaBackgroundColor": "Background Color",
+        "pwaIcon": "App Icon",
+        "pwaPushEnabled": "Push Notifications Enabled",
+        "pwaPushNotificationTypes": "Push Notification Types",
+        "pwaStatsEnabled": "Installation Statistics Enabled",
+        "pwaVapidPublicKey": "VAPID Public Key"
+    },
+    "tooltips": {
+        "pwaEnabled": "Allows users to install EspoCRM as an app on their devices.",
+        "pwaAppName": "The application name shown on the device. Defaults to the Application Name.",
+        "pwaShortName": "A short name for the home screen (max 12 characters).",
+        "pwaThemeColor": "Hex color of the app UI, e.g. #337ab7.",
+        "pwaBackgroundColor": "Hex color of the splash screen background, e.g. #ffffff.",
+        "pwaIcon": "A square PNG image (512x512 recommended). If not set, the bundled icon is used.",
+        "pwaPushEnabled": "Sends system notifications to devices even when the site is closed. Requires cron/daemon to be running.",
+        "pwaPushNotificationTypes": "Which notification types are delivered as push messages.",
+        "pwaStatsEnabled": "Collects anonymous data about installed apps: random identifier, device type, OS version. No user data is stored.",
+        "pwaVapidPublicKey": "Generated automatically on installation. Used by browsers to authenticate push messages."
+    },
+    "options": {
+        "pwaPushNotificationTypes": {
+            "Assign": "Assignment",
+            "EmailReceived": "Email Received",
+            "Message": "Message",
+            "Note": "Stream Post",
+            "MentionInPost": "Mention",
+            "System": "System"
+        }
+    }
+}

@@ -1,0 +1,16 @@
+{
+    "name": "espocrm/ext-mc-pwa",
+    "require": {
+        "php": ">=8.3"
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Espo\\Modules\\McPwa\\": "src/files/custom/Espo/Modules/McPwa",
+            "tests\\unit\\Espo\\Modules\\McPwa\\": "tests/unit/Espo/Modules/McPwa"
+        }
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^12.5",
+        "phpstan/phpstan": "^2.1"
+    }
+}

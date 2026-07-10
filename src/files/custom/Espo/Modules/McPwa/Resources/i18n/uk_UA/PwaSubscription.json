@@ -1,0 +1,13 @@
+{
+    "fields": {
+        "name": "Назва",
+        "user": "Користувач",
+        "endpoint": "Endpoint",
+        "publicKey": "Публічний ключ (p256dh)",
+        "authKey": "Ключ автентифікації",
+        "platform": "Платформа",
+        "userAgent": "User Agent",
+        "createdAt": "Створено",
+        "modifiedAt": "Змінено"
+    }
+}

@@ -1,0 +1,55 @@
+{
+    "fields": {
+        "name": {
+            "type": "varchar",
+            "maxLength": 150,
+            "readOnly": true
+        },
+        "user": {
+            "type": "link",
+            "readOnly": true
+        },
+        "endpoint": {
+            "type": "text",
+            "readOnly": true
+        },
+        "publicKey": {
+            "type": "varchar",
+            "maxLength": 255,
+            "readOnly": true
+        },
+        "authKey": {
+            "type": "varchar",
+            "maxLength": 100,
+            "readOnly": true
+        },
+        "platform": {
+            "type": "varchar",
+            "maxLength": 60,
+            "readOnly": true
+        },
+        "userAgent": {
+            "type": "varchar",
+            "maxLength": 255,
+            "readOnly": true
+        },
+        "createdAt": {
+            "type": "datetime",
+            "readOnly": true
+        },
+        "modifiedAt": {
+            "type": "datetime",
+            "readOnly": true
+        }
+    },
+    "links": {
+        "user": {
+            "type": "belongsTo",
+            "entity": "User"
+        }
+    },
+    "collection": {
+        "orderBy": "createdAt",
+        "order": "desc"
+    }
+}

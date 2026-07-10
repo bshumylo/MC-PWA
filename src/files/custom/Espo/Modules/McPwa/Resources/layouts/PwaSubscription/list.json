@@ -1,0 +1,6 @@
+[
+    {"name": "user"},
+    {"name": "platform"},
+    {"name": "createdAt"},
+    {"name": "modifiedAt"}
+]

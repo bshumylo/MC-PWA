@@ -1,0 +1,36 @@
+{
+    "fields": {
+        "pwaEnabled": "PWA увімкнено",
+        "pwaAppName": "Назва додатку",
+        "pwaShortName": "Коротка назва",
+        "pwaThemeColor": "Колір теми",
+        "pwaBackgroundColor": "Колір фону",
+        "pwaIcon": "Іконка додатку",
+        "pwaPushEnabled": "Push-сповіщення увімкнено",
+        "pwaPushNotificationTypes": "Типи push-сповіщень",
+        "pwaStatsEnabled": "Статистика встановлень увімкнена",
+        "pwaVapidPublicKey": "Публічний ключ VAPID"
+    },
+    "tooltips": {
+        "pwaEnabled": "Дозволяє користувачам встановлювати EspoCRM як додаток на свої пристрої.",
+        "pwaAppName": "Назва додатку на пристрої. За замовчуванням — Application Name.",
+        "pwaShortName": "Коротка назва для головного екрана (до 12 символів).",
+        "pwaThemeColor": "Hex-колір інтерфейсу додатку, напр. #337ab7.",
+        "pwaBackgroundColor": "Hex-колір фону заставки, напр. #ffffff.",
+        "pwaIcon": "Квадратне PNG-зображення (рекомендовано 512x512). Якщо не задано — використовується вбудована іконка.",
+        "pwaPushEnabled": "Надсилає системні сповіщення на пристрої, навіть коли сайт закритий. Потрібен запущений cron/daemon.",
+        "pwaPushNotificationTypes": "Які типи сповіщень доставляються як push.",
+        "pwaStatsEnabled": "Збирає анонімні дані про встановлені додатки: випадковий ідентифікатор, тип пристрою, версію ОС. Дані користувачів не зберігаються.",
+        "pwaVapidPublicKey": "Генерується автоматично під час встановлення. Використовується браузерами для автентифікації push-повідомлень."
+    },
+    "options": {
+        "pwaPushNotificationTypes": {
+            "Assign": "Призначення",
+            "EmailReceived": "Отримано email",
+            "Message": "Повідомлення",
+            "Note": "Пост у стрічці",
+            "MentionInPost": "Згадка",
+            "System": "Системне"
+        }
+    }
+}

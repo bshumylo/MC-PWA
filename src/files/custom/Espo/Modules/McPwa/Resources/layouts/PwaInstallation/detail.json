@@ -1,0 +1,22 @@
+[
+    {
+        "rows": [
+            [
+                {"name": "platform"},
+                {"name": "deviceType"}
+            ],
+            [
+                {"name": "osVersion"},
+                {"name": "language"}
+            ],
+            [
+                {"name": "anonymousId"},
+                {"name": "userAgent"}
+            ],
+            [
+                {"name": "installedAt"},
+                {"name": "lastSeenAt"}
+            ]
+        ]
+    }
+]

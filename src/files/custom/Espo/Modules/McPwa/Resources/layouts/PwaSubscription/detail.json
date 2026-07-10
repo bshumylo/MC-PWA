@@ -1,0 +1,18 @@
+[
+    {
+        "rows": [
+            [
+                {"name": "user"},
+                {"name": "platform"}
+            ],
+            [
+                {"name": "endpoint"},
+                {"name": "userAgent"}
+            ],
+            [
+                {"name": "createdAt"},
+                {"name": "modifiedAt"}
+            ]
+        ]
+    }
+]

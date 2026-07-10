@@ -1,0 +1,13 @@
+{
+    "fields": {
+        "name": "Name",
+        "user": "User",
+        "endpoint": "Endpoint",
+        "publicKey": "Public Key (p256dh)",
+        "authKey": "Auth Key",
+        "platform": "Platform",
+        "userAgent": "User Agent",
+        "createdAt": "Created At",
+        "modifiedAt": "Modified At"
+    }
+}

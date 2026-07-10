@@ -1,0 +1,52 @@
+{
+    "fields": {
+        "name": {
+            "type": "varchar",
+            "maxLength": 150,
+            "readOnly": true
+        },
+        "anonymousId": {
+            "type": "varchar",
+            "maxLength": 64,
+            "readOnly": true,
+            "index": true
+        },
+        "platform": {
+            "type": "varchar",
+            "maxLength": 60,
+            "readOnly": true
+        },
+        "osVersion": {
+            "type": "varchar",
+            "maxLength": 60,
+            "readOnly": true
+        },
+        "deviceType": {
+            "type": "enum",
+            "options": ["phone", "tablet", "desktop", "other"],
+            "readOnly": true
+        },
+        "language": {
+            "type": "varchar",
+            "maxLength": 10,
+            "readOnly": true
+        },
+        "userAgent": {
+            "type": "varchar",
+            "maxLength": 255,
+            "readOnly": true
+        },
+        "installedAt": {
+            "type": "datetime",
+            "readOnly": true
+        },
+        "lastSeenAt": {
+            "type": "datetime",
+            "readOnly": true
+        }
+    },
+    "collection": {
+        "orderBy": "lastSeenAt",
+        "order": "desc"
+    }
+}

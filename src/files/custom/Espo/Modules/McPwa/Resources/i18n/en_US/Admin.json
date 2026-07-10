@@ -1,0 +1,16 @@
+{
+    "labels": {
+        "PWA": "PWA",
+        "PWA Settings": "PWA Settings",
+        "PWA Installations": "PWA Installations",
+        "PWA Push Subscriptions": "PWA Push Subscriptions"
+    },
+    "keywords": {
+        "pwa": "pwa,mobile,app,push,notifications,manifest"
+    },
+    "descriptions": {
+        "pwaSettings": "Mobile app (PWA) parameters: name, icon, colors, push notifications, statistics.",
+        "pwaInstallations": "Anonymous statistics of installed mobile apps.",
+        "pwaSubscriptions": "Web Push subscriptions of users."
+    }
+}

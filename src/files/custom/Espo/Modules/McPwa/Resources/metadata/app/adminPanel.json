@@ -1,0 +1,27 @@
+{
+    "pwa": {
+        "label": "PWA",
+        "itemList": [
+            {
+                "url": "#Admin/pwaSettings",
+                "label": "PWA Settings",
+                "iconClass": "fas fa-mobile-alt",
+                "description": "pwaSettings",
+                "recordView": "mc-pwa:views/admin/pwa-settings"
+            },
+            {
+                "url": "#PwaInstallation",
+                "label": "PWA Installations",
+                "iconClass": "fas fa-chart-bar",
+                "description": "pwaInstallations"
+            },
+            {
+                "url": "#PwaSubscription",
+                "label": "PWA Push Subscriptions",
+                "iconClass": "fas fa-bell",
+                "description": "pwaSubscriptions"
+            }
+        ],
+        "order": 101
+    }
+}

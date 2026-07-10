@@ -1,0 +1,8 @@
+[
+    {"name": "platform"},
+    {"name": "deviceType"},
+    {"name": "osVersion"},
+    {"name": "language"},
+    {"name": "installedAt"},
+    {"name": "lastSeenAt"}
+]

@@ -1,0 +1,22 @@
+{
+    "scopeNames": {
+        "PwaSubscription": "PWA Push Subscription",
+        "PwaInstallation": "PWA Installation"
+    },
+    "scopeNamesPlural": {
+        "PwaSubscription": "PWA Push Subscriptions",
+        "PwaInstallation": "PWA Installations"
+    },
+    "labels": {
+        "Push Notifications": "Push Notifications",
+        "Statistics": "Statistics"
+    },
+    "mcPwaPush": {
+        "assignedToYou": "Assigned to you",
+        "newEmail": "New email",
+        "newMessage": "New message",
+        "newPost": "New post",
+        "youWereMentioned": "You were mentioned",
+        "newNotification": "New notification"
+    }
+}

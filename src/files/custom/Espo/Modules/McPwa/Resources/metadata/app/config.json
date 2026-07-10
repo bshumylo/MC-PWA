@@ -1,0 +1,41 @@
+{
+    "params": {
+        "pwaEnabled": {
+            "level": "admin"
+        },
+        "pwaAppName": {
+            "level": "admin"
+        },
+        "pwaShortName": {
+            "level": "admin"
+        },
+        "pwaThemeColor": {
+            "level": "admin"
+        },
+        "pwaBackgroundColor": {
+            "level": "admin"
+        },
+        "pwaIconId": {
+            "level": "admin"
+        },
+        "pwaIconName": {
+            "level": "admin"
+        },
+        "pwaPushEnabled": {
+            "level": "admin"
+        },
+        "pwaPushNotificationTypes": {
+            "level": "admin"
+        },
+        "pwaStatsEnabled": {
+            "level": "admin"
+        },
+        "pwaVapidPublicKey": {
+            "level": "admin",
+            "readOnly": true
+        },
+        "pwaVapidPrivateKey": {
+            "level": "internal"
+        }
+    }
+}

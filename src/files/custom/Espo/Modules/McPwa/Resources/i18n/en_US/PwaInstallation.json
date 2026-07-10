@@ -1,0 +1,21 @@
+{
+    "fields": {
+        "name": "Name",
+        "anonymousId": "Anonymous ID",
+        "platform": "Platform",
+        "osVersion": "OS Version",
+        "deviceType": "Device Type",
+        "language": "Language",
+        "userAgent": "User Agent",
+        "installedAt": "Installed At",
+        "lastSeenAt": "Last Seen At"
+    },
+    "options": {
+        "deviceType": {
+            "phone": "Phone",
+            "tablet": "Tablet",
+            "desktop": "Desktop",
+            "other": "Other"
+        }
+    }
+}
