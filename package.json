@@ -1,5 +1,5 @@
 {
-  "name": "espocrm-ext-mc-pwa",
+  "name": "mc-pwa",
   "version": "1.0.2",
   "description": "",
   "scripts": {
@@ -16,7 +16,7 @@
     "prepare-test": "node build --prepare-test"
   },
   "type": "module",
-  "author": "Bogdan Shumylo",
+  "author": "bshumylo",
   "dependencies": {
     "espo-extension-tools": "github:espocrm/extension-tools#0.4.5",
     "fs-extra": "^9.0.0"
