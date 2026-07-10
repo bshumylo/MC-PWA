@@ -3,7 +3,7 @@
         "PWA": "PWA",
         "PWA Settings": "Налаштування PWA",
         "PWA Installations": "Встановлення PWA",
-        "PWA Push Subscriptions": "Push-сповіщення PWA"
+        "PWA Push Subscriptions": "Push-підписка PWA"
     },
     "keywords": {
         "pwa": "pwa,мобільний,додаток,сповіщення,push"
@@ -11,6 +11,6 @@
     "descriptions": {
         "pwaSettings": "Параметри мобільного додатку (PWA): назва, іконка, кольори, push-сповіщення, статистика.",
         "pwaInstallations": "Анонімна статистика встановлення мобільних додатків.",
-        "pwaSubscriptions": "Web Push сповіщення користувачів."
+        "pwaSubscriptions": "Web Push підписка користувачів."
     }
 }
