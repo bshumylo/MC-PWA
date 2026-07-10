@@ -1,4 +1,4 @@
-# Ручна перевірка на живому сервері (crash.nwet.online)
+# Ручна перевірка на живому сервері
 
 ## Передумови
 
@@ -16,8 +16,8 @@
 ## 2. PWA-встановлюваність
 
 - [ ] Відкрити сайт у Chrome (Android) → меню → «Додати на головний екран» / банер встановлення
-- [ ] `https://crash.nwet.online/?entryPoint=pwaManifest` → коректний JSON-маніфест
-- [ ] `https://crash.nwet.online/?entryPoint=pwaIcon&size=192` → PNG-іконка
+- [ ] `https://your-espocrm.example.com/?entryPoint=pwaManifest` → коректний JSON-маніфест
+- [ ] `https://your-espocrm.example.com/?entryPoint=pwaIcon&size=192` → PNG-іконка
 - [ ] DevTools → Application → Manifest: без помилок, іконки видно
 - [ ] DevTools → Application → Service Workers: зареєстрований, scope `/`
 
