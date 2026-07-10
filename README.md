@@ -1,4 +1,4 @@
-# MC PWA — Progressive Web App for EspoCRM
+# MC PWA — Progressive Web App
 
 Turns your EspoCRM instance into an installable mobile/desktop app with Web Push notifications, app shortcuts and optional anonymous install statistics.
 
@@ -70,4 +70,4 @@ A server-side self-test for the Web Push crypto stack is available at `tests/web
 
 GPL-3.0 — see [LICENSE](LICENSE).
 
-Author: Bogdan Shumylo
+Author: bshumylo
