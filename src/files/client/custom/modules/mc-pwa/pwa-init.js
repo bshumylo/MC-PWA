@@ -108,6 +108,39 @@
             return navigator.userAgentData.platform;
         }
 
+        var ua = navigator.userAgent;
+
+        if (/iPhone|iPod/.test(ua)) {
+            return 'iOS';
+        }
+
+        if (
+            /iPad/.test(ua) ||
+            (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)
+        ) {
+            return 'iPadOS';
+        }
+
+        if (/Android/.test(ua)) {
+            return 'Android';
+        }
+
+        if (/Windows/.test(ua)) {
+            return 'Windows';
+        }
+
+        if (/Macintosh/.test(ua)) {
+            return 'macOS';
+        }
+
+        if (/CrOS/.test(ua)) {
+            return 'ChromeOS';
+        }
+
+        if (/Linux/.test(ua)) {
+            return 'Linux';
+        }
+
         return navigator.platform || 'unknown';
     };
 
@@ -117,6 +150,10 @@
         }
 
         if (!config || !config.pushEnabled || !config.vapidPublicKey) {
+            return;
+        }
+
+        if (config.subscriptionsEnabled === false) {
             return;
         }
 
@@ -224,15 +261,76 @@
         return 'other';
     };
 
-    var getOsVersion = function () {
+    /**
+     * OS version from the user-agent string. Only patterns that are NOT
+     * frozen by browsers are trusted:
+     *  - iOS/iPadOS Safari reports the real version;
+     *  - Firefox on Android reports the real version; Chrome's reduced UA
+     *    is always "Android 10; K" and is skipped;
+     *  - "Windows NT 10.0" and "Mac OS X 10_15_7" are frozen — skipped.
+     * Returns '' when the version cannot be trusted.
+     */
+    var getOsVersionFromUa = function () {
         var ua = navigator.userAgent;
 
-        var m = ua.match(/Android\s([\d.]+)/) ||
-            ua.match(/OS\s([\d_]+)\slike\sMac/) ||
-            ua.match(/Windows\sNT\s([\d.]+)/) ||
-            ua.match(/Mac\sOS\sX\s([\d_.]+)/);
+        var m = ua.match(/(?:iPhone|iPad|iPod).*?OS\s(\d+(?:[_.]\d+)*)/);
 
-        return m ? m[1].replace(/_/g, '.') : '';
+        if (m) {
+            return m[1].replace(/_/g, '.');
+        }
+
+        m = ua.match(/Android\s(\d+(?:\.\d+)*)/);
+
+        if (m && !/Android 10; K/.test(ua)) {
+            return m[1];
+        }
+
+        return '';
+    };
+
+    /**
+     * Resolves {platform, osVersion}. Prefers User-Agent Client Hints
+     * (Chromium): platformVersion is the real OS version there.
+     * On Windows the hint is a build-based number: major >= 13 means
+     * Windows 11, 1..12 means Windows 10.
+     */
+    var getOsInfo = function () {
+        var uad = navigator.userAgentData;
+
+        var fallback = function () {
+            return {
+                platform: getPlatform(),
+                osVersion: getOsVersionFromUa(),
+            };
+        };
+
+        if (!uad || !uad.getHighEntropyValues) {
+            return Promise.resolve(fallback());
+        }
+
+        return uad.getHighEntropyValues(['platformVersion'])
+            .then(function (values) {
+                var platform = uad.platform || 'unknown';
+                var version = String(values.platformVersion || '');
+                var major = parseInt(version.split('.')[0], 10);
+
+                if (platform === 'Windows') {
+                    if (isNaN(major)) {
+                        version = '';
+                    } else if (major >= 13) {
+                        version = '11';
+                    } else if (major > 0) {
+                        version = '10';
+                    } else {
+                        version = '';
+                    }
+                } else {
+                    version = version.replace(/(\.0)+$/, '');
+                }
+
+                return {platform: platform, osVersion: version};
+            })
+            .catch(fallback);
     };
 
     var sendStats = function () {
@@ -240,13 +338,15 @@
             return;
         }
 
-        postJson('McPwa/stats', {
-            anonymousId: getAnonymousId(),
-            platform: getPlatform(),
-            osVersion: getOsVersion(),
-            deviceType: getDeviceType(),
-            language: (navigator.language || '').substring(0, 10),
-            userAgent: navigator.userAgent.substring(0, 250),
+        getOsInfo().then(function (os) {
+            return postJson('McPwa/stats', {
+                anonymousId: getAnonymousId(),
+                platform: os.platform,
+                osVersion: os.osVersion,
+                deviceType: getDeviceType(),
+                language: (navigator.language || '').substring(0, 10),
+                userAgent: navigator.userAgent.substring(0, 250),
+            });
         }).catch(function () {});
     };
 

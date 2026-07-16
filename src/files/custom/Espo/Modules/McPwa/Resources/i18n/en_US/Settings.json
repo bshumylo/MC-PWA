@@ -9,6 +9,7 @@
         "pwaPushEnabled": "Push Notifications Enabled",
         "pwaPushNotificationTypes": "Push Notification Types",
         "pwaStatsEnabled": "Installation Statistics Enabled",
+        "pwaSubscriptionsEnabled": "Push Subscriptions Enabled",
         "pwaVapidPublicKey": "VAPID Public Key"
     },
     "tooltips": {
@@ -21,6 +22,7 @@
         "pwaPushEnabled": "Sends system notifications to devices even when the site is closed. Requires cron/daemon to be running.",
         "pwaPushNotificationTypes": "Which notification types are delivered as push messages.",
         "pwaStatsEnabled": "Collects anonymous data about installed apps: random identifier, device type, OS version. No user data is stored.",
+        "pwaSubscriptionsEnabled": "Allows devices to register push subscriptions. When disabled, no new subscriptions are stored; existing ones are kept. Push delivery requires subscriptions.",
         "pwaVapidPublicKey": "Generated automatically on installation. Used by browsers to authenticate push messages."
     },
     "options": {

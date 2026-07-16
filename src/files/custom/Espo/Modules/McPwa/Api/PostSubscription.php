@@ -61,6 +61,10 @@ class PostSubscription implements Action
         if ($action === 'unsubscribe') {
             $this->unsubscribe($endpoint);
         } else {
+            if (!($this->config->get('pwaSubscriptionsEnabled') ?? true)) {
+                throw new Forbidden('Push subscriptions are disabled.');
+            }
+
             $this->subscribe($body, $endpoint);
         }
 

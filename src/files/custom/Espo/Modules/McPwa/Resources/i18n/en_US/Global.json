@@ -9,7 +9,8 @@
     },
     "labels": {
         "Push Notifications": "Push Notifications",
-        "Statistics": "Statistics",
+        "Installation Statistics": "Installation Statistics",
+        "Push Subscriptions": "Push Subscriptions",
         "Send Test Push": "Send Test Push",
         "testPushSent": "Test push sent: {sent} of {total} delivered.",
         "testPushNoSubscriptions": "No push subscriptions for your user."

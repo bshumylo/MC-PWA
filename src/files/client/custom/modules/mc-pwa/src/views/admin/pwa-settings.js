@@ -34,10 +34,19 @@ define(['views/settings/record/edit'], (Dep) => {
                 ],
             },
             {
-                label: 'Statistics',
+                label: 'Installation Statistics',
                 rows: [
                     [
                         {name: 'pwaStatsEnabled'},
+                        false,
+                    ],
+                ],
+            },
+            {
+                label: 'Push Subscriptions',
+                rows: [
+                    [
+                        {name: 'pwaSubscriptionsEnabled'},
                         false,
                     ],
                 ],

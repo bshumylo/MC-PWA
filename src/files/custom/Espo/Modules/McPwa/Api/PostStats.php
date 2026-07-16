@@ -81,7 +81,7 @@ class PostStats implements Action
         }
 
         $installation->set([
-            'name' => $platform . ' / ' . $deviceType,
+            'name' => $platform . ($osVersion ? ' ' . $osVersion : '') . ' / ' . $deviceType,
             'platform' => $platform,
             'osVersion' => $osVersion,
             'deviceType' => $deviceType,

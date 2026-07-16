@@ -9,7 +9,8 @@
     },
     "labels": {
         "Push Notifications": "Push-сповіщення",
-        "Statistics": "Статистика",
+        "Installation Statistics": "Статистика встановлень",
+        "Push Subscriptions": "Push-підписки",
         "Send Test Push": "Надіслати тестове сповіщення",
         "testPushSent": "Тест надіслано: {sent} з {total} доставлено.",
         "testPushNoSubscriptions": "Для вашого користувача немає push-підписок."

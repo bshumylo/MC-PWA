@@ -30,6 +30,9 @@
         "pwaStatsEnabled": {
             "level": "admin"
         },
+        "pwaSubscriptionsEnabled": {
+            "level": "admin"
+        },
         "pwaVapidPublicKey": {
             "level": "admin",
             "readOnly": true

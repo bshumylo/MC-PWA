@@ -25,6 +25,7 @@ class PwaConfig implements EntryPoint
         $data = [
             'enabled' => (bool) $this->config->get('pwaEnabled'),
             'pushEnabled' => (bool) $this->config->get('pwaPushEnabled'),
+            'subscriptionsEnabled' => (bool) ($this->config->get('pwaSubscriptionsEnabled') ?? true),
             'statsEnabled' => (bool) $this->config->get('pwaStatsEnabled'),
             'themeColor' => $this->config->get('pwaThemeColor') ?: '#337ab7',
             'vapidPublicKey' => (string) ($this->config->get('pwaVapidPublicKey') ?? ''),

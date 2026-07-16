@@ -1,8 +1,8 @@
 {
   "module": "McPwa",
   "name": "MC PWA",
-  "description": "Progressive Web App: installable mobile/desktop app with Web Push notifications, app shortcuts and anonymous install statistics.",
-  "author": "Bogdan Shumylo",
+  "description": "Installable mobile/desktop app with notifications, shortcuts and anonymous statistics.",
+  "author": "bshuymlo",
   "bundled": false,
   "acceptableVersions": [
     ">=10.0.0"
@@ -11,5 +11,5 @@
     ">=8.1"
   ],
   "scripts": [],
-  "version": "1.0.7"
+  "version": "1.0.8"
 }

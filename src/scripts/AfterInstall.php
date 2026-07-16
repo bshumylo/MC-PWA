@@ -22,6 +22,7 @@ class AfterInstall
             'pwaEnabled' => true,
             'pwaPushEnabled' => true,
             'pwaStatsEnabled' => false,
+            'pwaSubscriptionsEnabled' => true,
             'pwaThemeColor' => '#337ab7',
             'pwaBackgroundColor' => '#ffffff',
             'pwaPushNotificationTypes' => [

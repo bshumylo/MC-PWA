@@ -48,6 +48,10 @@
             "type": "bool",
             "tooltip": true
         },
+        "pwaSubscriptionsEnabled": {
+            "type": "bool",
+            "tooltip": true
+        },
         "pwaVapidPublicKey": {
             "type": "varchar",
             "maxLength": 255,
