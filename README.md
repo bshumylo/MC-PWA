@@ -1,10 +1,12 @@
 # MC PWA — Progressive Web App
 
-Turns your CRM instance into an installable mobile/desktop app with Web Push notifications, a configurable bottom navigation bar, app shortcuts and optional anonymous install statistics.
+<img width="1200" height="630" alt="mc-pwa-cover" src="https://github.com/user-attachments/assets/ea78cb9f-c1a4-4b2c-b2ee-044246da819c" />
+
+Turns your EspoCRM instance into an installable mobile/desktop app with Web Push notifications, a configurable bottom navigation bar, app shortcuts and optional anonymous install statistics.
 
 ## Features
 
-- **Installable PWA** — users can add the CRM to their home screen (Android, iOS 16.4+, desktop Chrome/Edge). Manifest, service worker and icons are generated dynamically from settings; maskable icon variants are provided for Android launchers.
+- **Installable PWA** — users can add the EspoCRM to their home screen (Android, iOS 16.4+, desktop Chrome/Edge). Manifest, service worker and icons are generated dynamically from settings; maskable icon variants are provided for Android launchers.
 - **Web Push notifications** — system notifications (assignments, emails, mentions, stream posts, messages, system) and popup reminders are delivered to devices even when the browser is closed. Implemented in pure PHP (RFC 8291 `aes128gcm` encryption + RFC 8292 VAPID `ES256`), **no Composer dependencies**.
 - **Bottom navigation bar** (since 1.1) — a native-app-like button bar shown at the bottom of the screen in the installed app on mobile devices. Configured in the admin panel with the same editor as the core Tab List (User Interface): drag-and-drop ordering, entity tabs picked from a searchable list (their icon, color and label are taken from the system automatically), and custom URL buttons with a label, icon, icon color, ACL scope, admin-only and open-in-new-tab options. Labels under icons can be switched off globally (icons-only mode). Buttons are filtered by the user's access rights; the bar adapts to light/dark themes and to iPhone safe areas.
 - **Reminder push** — an every-minute scheduled job delivers popup reminders (meetings, calls, tasks) as push messages.
@@ -16,7 +18,7 @@ Turns your CRM instance into an installable mobile/desktop app with Web Push not
 
 ## Requirements
 
-- CRM platform ≥ 10.0 (built on the official extension template)
+- EspoCRM ≥ 10.0 (built on the official extension template)
 - PHP ≥ 8.1 with `openssl` and `gd`
 - HTTPS (required by browsers for service workers and push)
 - Running cron/daemon (for push notification delivery)
@@ -24,7 +26,7 @@ Turns your CRM instance into an installable mobile/desktop app with Web Push not
 ## Installation
 
 1. Download `mc-pwa-<version>.zip` from [Releases](https://github.com/bshumylo/MC-PWA/releases).
-2. In the CRM: **Administration → Extensions → Upload**, select the zip and install.
+2. In the EspoCRM: **Administration → Extensions → Upload**, select the zip and install.
 3. Go to **Administration → PWA**, enable PWA and (optionally) push notifications and the bottom navigation bar.
 4. Rebuild if prompted.
 
@@ -36,7 +38,7 @@ When upgrading from 1.0.x, bottom bar buttons saved in the old format are migrat
 
 | Setting | Description |
 |---|---|
-| PWA Enabled | Allows users to install the CRM as an app |
+| PWA Enabled | Allows users to install the EspoCRM as an app |
 | App Name / Short Name | Names shown on the device |
 | Theme / Background Color | App UI and splash screen colors |
 | App Icon | Square PNG, 512×512 recommended (falls back to company logo) |
