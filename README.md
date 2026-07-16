@@ -1,10 +1,10 @@
 # MC PWA — Progressive Web App
 
-Turns your CRM instance into an installable mobile/desktop app with Web Push notifications, app shortcuts and optional anonymous install statistics.
+Turns your EspoCRM instance into an installable mobile/desktop app with Web Push notifications, app shortcuts and optional anonymous install statistics.
 
 ## Features
 
-- **Installable PWA** — users can add the CRM to their home screen (Android, iOS 16.4+, desktop Chrome/Edge). Manifest, service worker and icons are generated dynamically from settings; maskable icon variants are provided for Android launchers.
+- **Installable PWA** — users can add the EspoCRM to their home screen (Android, iOS 16.4+, desktop Chrome/Edge). Manifest, service worker and icons are generated dynamically from settings; maskable icon variants are provided for Android launchers.
 - **Web Push notifications** — system notifications (assignments, emails, mentions, stream posts, messages, system) and popup reminders are delivered to devices even when the browser is closed. Implemented in pure PHP (RFC 8291 `aes128gcm` encryption + RFC 8292 VAPID `ES256`), **no Composer dependencies**.
 - **Reminder push** — an every-minute scheduled job delivers popup reminders (meetings, calls, tasks) as push messages.
 - **Test push** — a "Send Test Push" button in the admin panel verifies end-to-end delivery per subscription (sent / expired / error).
@@ -15,7 +15,7 @@ Turns your CRM instance into an installable mobile/desktop app with Web Push not
 
 ## Requirements
 
-- CRM platform ≥ 10.0 (built on the official extension template)
+- EspoCRM ≥ 10.0 (built on the official extension template)
 - PHP ≥ 8.1 with `openssl` and `gd`
 - HTTPS (required by browsers for service workers and push)
 - Running cron/daemon (for push notification delivery)
@@ -23,7 +23,7 @@ Turns your CRM instance into an installable mobile/desktop app with Web Push not
 ## Installation
 
 1. Download `mc-pwa-<version>.zip` from [Releases](https://github.com/bshumylo/MC-PWA/releases).
-2. In the CRM: **Administration → Extensions → Upload**, select the zip and install.
+2. In the EspoCRM: **Administration → Extensions → Upload**, select the zip and install.
 3. Go to **Administration → PWA**, enable PWA and (optionally) push notifications.
 4. Rebuild if prompted.
 
@@ -33,7 +33,7 @@ VAPID keys are generated automatically during installation. The private key is s
 
 | Setting | Description |
 |---|---|
-| PWA Enabled | Allows users to install the CRM as an app |
+| PWA Enabled | Allows users to install the EspoCRM as an app |
 | App Name / Short Name | Names shown on the device |
 | Theme / Background Color | App UI and splash screen colors |
 | App Icon | Square PNG, 512×512 recommended (falls back to company logo) |
