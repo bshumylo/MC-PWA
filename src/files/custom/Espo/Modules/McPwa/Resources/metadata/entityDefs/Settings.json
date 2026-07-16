@@ -52,6 +52,25 @@
             "type": "bool",
             "tooltip": true
         },
+        "pwaBottomBarEnabled": {
+            "type": "bool",
+            "tooltip": true
+        },
+        "pwaBottomBarShowLabels": {
+            "type": "bool",
+            "tooltip": true
+        },
+        "pwaBottomBarItems": {
+            "type": "array",
+            "view": "mc-pwa:views/fields/bottom-bar-items",
+            "validationList": [
+                "array"
+            ],
+            "mandatoryValidationList": [
+                "array"
+            ],
+            "tooltip": true
+        },
         "pwaVapidPublicKey": {
             "type": "varchar",
             "maxLength": 255,

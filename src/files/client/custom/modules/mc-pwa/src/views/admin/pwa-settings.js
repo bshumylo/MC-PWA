@@ -34,6 +34,19 @@ define(['views/settings/record/edit'], (Dep) => {
                 ],
             },
             {
+                label: 'Bottom Navigation Bar',
+                rows: [
+                    [
+                        {name: 'pwaBottomBarEnabled'},
+                        {name: 'pwaBottomBarShowLabels'},
+                    ],
+                    [
+                        {name: 'pwaBottomBarItems'},
+                        false,
+                    ],
+                ],
+            },
+            {
                 label: 'Installation Statistics',
                 rows: [
                     [

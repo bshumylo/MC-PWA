@@ -33,6 +33,15 @@
         "pwaSubscriptionsEnabled": {
             "level": "admin"
         },
+        "pwaBottomBarEnabled": {
+            "level": "admin"
+        },
+        "pwaBottomBarShowLabels": {
+            "level": "admin"
+        },
+        "pwaBottomBarItems": {
+            "level": "admin"
+        },
         "pwaVapidPublicKey": {
             "level": "admin",
             "readOnly": true

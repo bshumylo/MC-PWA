@@ -13,5 +13,10 @@
         "route": "/McPwa/testPush",
         "method": "post",
         "actionClassName": "Espo\\Modules\\McPwa\\Api\\PostTestPush"
+    },
+    {
+        "route": "/McPwa/bottomBar",
+        "method": "get",
+        "actionClassName": "Espo\\Modules\\McPwa\\Api\\GetBottomBar"
     }
 ]

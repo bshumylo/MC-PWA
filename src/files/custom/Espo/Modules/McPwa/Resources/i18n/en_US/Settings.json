@@ -10,7 +10,10 @@
         "pwaPushNotificationTypes": "Push Notification Types",
         "pwaStatsEnabled": "Installation Statistics Enabled",
         "pwaSubscriptionsEnabled": "Push Subscriptions Enabled",
-        "pwaVapidPublicKey": "VAPID Public Key"
+        "pwaVapidPublicKey": "VAPID Public Key",
+        "pwaBottomBarEnabled": "Bottom Navigation Bar Enabled",
+        "pwaBottomBarShowLabels": "Show Button Labels",
+        "pwaBottomBarItems": "Bottom Bar Buttons"
     },
     "tooltips": {
         "pwaEnabled": "Allows users to install the system as an app on their devices.",
@@ -23,7 +26,10 @@
         "pwaPushNotificationTypes": "Which notification types are delivered as push messages.",
         "pwaStatsEnabled": "Collects anonymous data about installed apps: random identifier, device type, OS version. No user data is stored.",
         "pwaSubscriptionsEnabled": "Allows devices to register push subscriptions. When disabled, no new subscriptions are stored; existing ones are kept. Push delivery requires subscriptions.",
-        "pwaVapidPublicKey": "Generated automatically on installation. Used by browsers to authenticate push messages."
+        "pwaVapidPublicKey": "Generated automatically on installation. Used by browsers to authenticate push messages.",
+        "pwaBottomBarEnabled": "Shows a bottom bar with navigation buttons in the installed app on mobile devices.",
+        "pwaBottomBarShowLabels": "Shows a small text label under each icon. When disabled, only icons are shown (slightly larger).",
+        "pwaBottomBarItems": "Buttons of the bottom bar (max 8, 3-5 recommended). Works like the Tab List in User Interface settings: add entity tabs or custom URL buttons (label, icon, icon color, access options), reorder by drag and drop, edit URL buttons via the pencil icon."
     },
     "options": {
         "pwaPushNotificationTypes": {

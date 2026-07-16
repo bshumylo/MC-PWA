@@ -13,7 +13,8 @@
         "Push Subscriptions": "Push Subscriptions",
         "Send Test Push": "Send Test Push",
         "testPushSent": "Test push sent: {sent} of {total} delivered.",
-        "testPushNoSubscriptions": "No push subscriptions for your user."
+        "testPushNoSubscriptions": "No push subscriptions for your user.",
+        "Bottom Navigation Bar": "Bottom Navigation Bar"
     },
     "mcPwaPush": {
         "assignedToYou": "Assigned to you",

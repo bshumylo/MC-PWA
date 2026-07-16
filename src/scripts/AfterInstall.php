@@ -23,6 +23,9 @@ class AfterInstall
             'pwaPushEnabled' => true,
             'pwaStatsEnabled' => false,
             'pwaSubscriptionsEnabled' => true,
+            'pwaBottomBarEnabled' => false,
+            'pwaBottomBarShowLabels' => true,
+            'pwaBottomBarItems' => [],
             'pwaThemeColor' => '#337ab7',
             'pwaBackgroundColor' => '#ffffff',
             'pwaPushNotificationTypes' => [
@@ -50,9 +53,67 @@ class AfterInstall
             }
         }
 
+        $this->migrateBottomBarItems($config, $configWriter);
+
         $configWriter->save();
 
         $this->ensureScheduledJob($container);
+    }
+
+
+    /**
+     * Converts bottom bar items of the v1.0.x format ({url, label, iconClass,
+     * iconColor} objects) to the tabList-like format (scope strings and
+     * {type: 'url'} objects).
+     */
+    private function migrateBottomBarItems(Config $config, ConfigWriter $configWriter): void
+    {
+        $list = $config->get('pwaBottomBarItems');
+
+        if (!is_array($list)) {
+            return;
+        }
+
+        $changed = false;
+        $result = [];
+
+        foreach ($list as $item) {
+            if (is_object($item)) {
+                $item = get_object_vars($item);
+            }
+
+            if (!is_array($item) || isset($item['type']) || !isset($item['url'])) {
+                $result[] = $item;
+
+                continue;
+            }
+
+            $changed = true;
+
+            $url = (string) $item['url'];
+
+            if (preg_match('/^#([A-Za-z][A-Za-z0-9]*)$/', $url, $m)) {
+                $result[] = $m[1];
+
+                continue;
+            }
+
+            $result[] = [
+                'id' => (string) rand(1, 1000000),
+                'type' => 'url',
+                'text' => $item['label'] ?? $url,
+                'url' => $url,
+                'iconClass' => $item['iconClass'] ?? null,
+                'color' => $item['iconColor'] ?? null,
+                'aclScope' => null,
+                'onlyAdmin' => false,
+                'openInNewTab' => (bool) preg_match('~^https?://~i', $url),
+            ];
+        }
+
+        if ($changed) {
+            $configWriter->set('pwaBottomBarItems', $result);
+        }
     }
 
     /**
