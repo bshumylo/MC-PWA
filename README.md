@@ -1,5 +1,7 @@
 # MC PWA — Progressive Web App
 
+<img width="1200" height="630" alt="mc-pwa-cover" src="https://github.com/user-attachments/assets/ea78cb9f-c1a4-4b2c-b2ee-044246da819c" />
+
 Turns your EspoCRM instance into an installable mobile/desktop app with Web Push notifications, app shortcuts and optional anonymous install statistics.
 
 ## Features
