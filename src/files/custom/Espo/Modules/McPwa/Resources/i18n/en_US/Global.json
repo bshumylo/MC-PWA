@@ -9,7 +9,10 @@
     },
     "labels": {
         "Push Notifications": "Push Notifications",
-        "Statistics": "Statistics"
+        "Statistics": "Statistics",
+        "Send Test Push": "Send Test Push",
+        "testPushSent": "Test push sent: {sent} of {total} delivered.",
+        "testPushNoSubscriptions": "No push subscriptions for your user."
     },
     "mcPwaPush": {
         "assignedToYou": "Assigned to you",
@@ -17,6 +20,8 @@
         "newMessage": "New message",
         "newPost": "New post",
         "youWereMentioned": "You were mentioned",
-        "newNotification": "New notification"
+        "newNotification": "New notification",
+        "reminder": "Reminder",
+        "testPushBody": "Test push notification. Delivery works."
     }
 }

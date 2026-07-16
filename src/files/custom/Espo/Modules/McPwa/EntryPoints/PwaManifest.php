@@ -30,7 +30,7 @@ class PwaManifest implements EntryPoint
 
         $appName = $this->config->get('pwaAppName')
             ?: $this->config->get('applicationName')
-            ?: 'EspoCRM';
+            ?: 'CRM';
 
         $shortName = $this->config->get('pwaShortName') ?: mb_substr($appName, 0, 12);
 
@@ -60,7 +60,13 @@ class PwaManifest implements EntryPoint
                     'purpose' => 'any',
                 ],
                 [
-                    'src' => $base . '?entryPoint=pwaIcon&size=512',
+                    'src' => $base . '?entryPoint=pwaIcon&size=192&maskable=1',
+                    'sizes' => '192x192',
+                    'type' => 'image/png',
+                    'purpose' => 'maskable',
+                ],
+                [
+                    'src' => $base . '?entryPoint=pwaIcon&size=512&maskable=1',
                     'sizes' => '512x512',
                     'type' => 'image/png',
                     'purpose' => 'maskable',

@@ -12,7 +12,7 @@
         "pwaVapidPublicKey": "VAPID Public Key"
     },
     "tooltips": {
-        "pwaEnabled": "Allows users to install EspoCRM as an app on their devices.",
+        "pwaEnabled": "Allows users to install the system as an app on their devices.",
         "pwaAppName": "The application name shown on the device. Defaults to the Application Name.",
         "pwaShortName": "A short name for the home screen (max 12 characters).",
         "pwaThemeColor": "Hex color of the app UI, e.g. #337ab7.",

@@ -32,7 +32,7 @@ class PayloadBuilder
 
         $appName = $this->config->get('pwaAppName')
             ?: $this->config->get('applicationName')
-            ?: 'EspoCRM';
+            ?: 'CRM';
 
         [$title, $body, $url] = match ($type) {
             'Assign' => $this->buildAssign($data),

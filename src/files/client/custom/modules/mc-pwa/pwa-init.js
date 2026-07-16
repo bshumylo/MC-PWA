@@ -1,7 +1,7 @@
 /**
  * MC PWA – client bootstrap.
  *
- * Loaded on every EspoCRM page (login page included). Responsibilities:
+ * Loaded on every page (login page included). Responsibilities:
  *  1. Inject the web-app manifest and meta tags (installability).
  *  2. Register the service worker (push + offline fallback).
  *  3. Subscribe the logged-in user to Web Push.
@@ -67,7 +67,7 @@
         if (!document.querySelector('link[rel="apple-touch-icon"]')) {
             var apple = document.createElement('link');
             apple.rel = 'apple-touch-icon';
-            apple.href = entryUrl('pwaIcon') + '&size=192';
+            apple.href = entryUrl('pwaIcon') + '&size=192&maskable=1';
             document.head.appendChild(apple);
         }
     };

@@ -1,0 +1,5 @@
+{
+    "McPwaSendReminderPush": {
+        "jobClassName": "Espo\\Modules\\McPwa\\Jobs\\SendReminderPush"
+    }
+}

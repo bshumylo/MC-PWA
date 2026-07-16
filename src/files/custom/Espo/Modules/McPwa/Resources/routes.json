@@ -8,5 +8,10 @@
         "route": "/McPwa/stats",
         "method": "post",
         "actionClassName": "Espo\\Modules\\McPwa\\Api\\PostStats"
+    },
+    {
+        "route": "/McPwa/testPush",
+        "method": "post",
+        "actionClassName": "Espo\\Modules\\McPwa\\Api\\PostTestPush"
     }
 ]

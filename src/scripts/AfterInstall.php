@@ -50,6 +50,32 @@ class AfterInstall
         }
 
         $configWriter->save();
+
+        $this->ensureScheduledJob($container);
+    }
+
+    /**
+     * Creates the every-minute reminder-push scheduled job if it is absent.
+     */
+    private function ensureScheduledJob(Container $container): void
+    {
+        $entityManager = $container->getByClass(\Espo\ORM\EntityManager::class);
+
+        $existing = $entityManager
+            ->getRDBRepository('ScheduledJob')
+            ->where(['job' => 'McPwaSendReminderPush'])
+            ->findOne();
+
+        if ($existing) {
+            return;
+        }
+
+        $entityManager->createEntity('ScheduledJob', [
+            'name' => 'MC PWA: Reminder Push',
+            'job' => 'McPwaSendReminderPush',
+            'status' => 'Active',
+            'scheduling' => '* * * * *',
+        ]);
     }
 
     /**

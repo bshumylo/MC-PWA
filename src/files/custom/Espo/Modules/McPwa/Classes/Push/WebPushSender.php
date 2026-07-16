@@ -10,7 +10,7 @@ use RuntimeException;
  *  - RFC 8291 (Message Encryption for Web Push, aes128gcm)
  *  - RFC 8292 (VAPID, ES256 JWT)
  *
- * Uses only ext-openssl (required by EspoCRM). No third-party dependencies,
+ * Uses only ext-openssl (available on the target platform). No third-party dependencies,
  * which keeps the security surface minimal.
  */
 class WebPushSender
@@ -56,7 +56,7 @@ class WebPushSender
             'Content-Encoding: aes128gcm',
             'Content-Length: ' . strlen($body),
             'TTL: ' . self::TTL,
-            'Urgency: normal',
+            'Urgency: high',
             'Authorization: ' . $this->buildVapidAuthorization($endpoint),
         ];
 

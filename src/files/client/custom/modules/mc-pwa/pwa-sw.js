@@ -18,17 +18,16 @@ self.addEventListener('push', function (event) {
     try {
         data = event.data ? event.data.json() : {};
     } catch (e) {
-        data = {title: 'EspoCRM', body: event.data ? event.data.text() : ''};
+        data = {title: 'CRM', body: event.data ? event.data.text() : ''};
     }
 
-    var title = data.title || 'EspoCRM';
+    var title = data.title || 'CRM';
 
     var options = {
         body: data.body || '',
         tag: data.tag || undefined,
         data: {url: data.url || ''},
         icon: new URL('?entryPoint=pwaIcon&size=192', self.registration.scope).href,
-        badge: new URL('?entryPoint=pwaIcon&size=192', self.registration.scope).href,
     };
 
     event.waitUntil(self.registration.showNotification(title, options));

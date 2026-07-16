@@ -41,8 +41,10 @@ class PwaIcon implements EntryPoint
             $size = 192;
         }
 
-        $content = $this->getAttachmentIcon('pwaIconId', $size)
-            ?? $this->getAttachmentIcon('companyLogoId', $size)
+        $maskable = (bool) $request->getQueryParam('maskable');
+
+        $content = $this->getAttachmentIcon('pwaIconId', $size, $maskable)
+            ?? $this->getAttachmentIcon('companyLogoId', $size, $maskable)
             ?? $this->generatePlaceholder($size);
 
         $response
@@ -53,7 +55,7 @@ class PwaIcon implements EntryPoint
         $response->writeBody($content ?? '');
     }
 
-    private function getAttachmentIcon(string $configParam, int $size): ?string
+    private function getAttachmentIcon(string $configParam, int $size, bool $maskable = false): ?string
     {
         $attachmentId = $this->config->get($configParam);
 
@@ -78,10 +80,10 @@ class PwaIcon implements EntryPoint
             return null;
         }
 
-        return $this->resizeToSquarePng($source, $size);
+        return $this->resizeToSquarePng($source, $size, $maskable);
     }
 
-    private function resizeToSquarePng(string $source, int $size): ?string
+    private function resizeToSquarePng(string $source, int $size, bool $maskable = false): ?string
     {
         if (!function_exists('imagecreatefromstring')) {
             return null;
@@ -98,14 +100,29 @@ class PwaIcon implements EntryPoint
 
         $canvas = imagecreatetruecolor($size, $size);
 
-        imagealphablending($canvas, false);
-        imagesavealpha($canvas, true);
+        if ($maskable) {
+            // Maskable icons must fill the whole canvas: solid background,
+            // content within the ~80% safe zone (Android crops to a circle).
+            [$r, $g, $b] = $this->parseHexColor(
+                (string) ($this->config->get('pwaBackgroundColor')
+                    ?: $this->config->get('pwaThemeColor')
+                    ?: '#337ab7')
+            );
 
-        $transparent = imagecolorallocatealpha($canvas, 0, 0, 0, 127);
-        imagefill($canvas, 0, 0, $transparent);
-        imagealphablending($canvas, true);
+            imagefill($canvas, 0, 0, imagecolorallocate($canvas, $r, $g, $b));
+            imagealphablending($canvas, true);
+        } else {
+            imagealphablending($canvas, false);
+            imagesavealpha($canvas, true);
 
-        $scale = min($size / $width, $size / $height);
+            $transparent = imagecolorallocatealpha($canvas, 0, 0, 0, 127);
+            imagefill($canvas, 0, 0, $transparent);
+            imagealphablending($canvas, true);
+        }
+
+        $safeZone = $maskable ? 0.8 : 1.0;
+
+        $scale = min($size / $width, $size / $height) * $safeZone;
 
         $newWidth = (int) round($width * $scale);
         $newHeight = (int) round($height * $scale);
@@ -123,8 +140,10 @@ class PwaIcon implements EntryPoint
             $height
         );
 
-        imagealphablending($canvas, false);
-        imagesavealpha($canvas, true);
+        if (!$maskable) {
+            imagealphablending($canvas, false);
+            imagesavealpha($canvas, true);
+        }
 
         ob_start();
         imagepng($canvas);

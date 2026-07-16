@@ -1,7 +1,7 @@
 {
   "name": "espocrm-ext-mc-pwa",
-  "version": "1.0.5",
-  "description": "EspoCRM extension: installable PWA with Web Push notifications, app shortcuts and anonymous install statistics.",
+  "version": "1.0.7",
+  "description": "Extension: installable PWA with Web Push notifications, app shortcuts and anonymous install statistics.",
   "scripts": {
     "sa": "vendor/bin/phpstan",
     "unit-tests": "vendor/bin/phpunit",
@@ -18,7 +18,7 @@
   "type": "module",
   "author": "Bogdan Shumylo",
   "dependencies": {
-    "espo-extension-tools": "github:espocrm/extension-tools#0.4.5",
+    "espo-extension-tools": "file:/tmp/extension-tools",
     "fs-extra": "^9.0.0"
   },
   "engines": {

@@ -1,7 +1,7 @@
 {
   "module": "McPwa",
   "name": "MC PWA",
-  "description": "Progressive Web App for EspoCRM: installable mobile app with Web Push notifications, app shortcuts and anonymous install statistics.",
+  "description": "Progressive Web App: installable mobile/desktop app with Web Push notifications, app shortcuts and anonymous install statistics.",
   "author": "Bogdan Shumylo",
   "bundled": false,
   "acceptableVersions": [
@@ -11,5 +11,5 @@
     ">=8.1"
   ],
   "scripts": [],
-  "version": "1.0.5"
+  "version": "1.0.7"
 }
