@@ -68,6 +68,6 @@ A server-side self-test for the Web Push crypto stack is available at `tests/web
 
 ## License
 
-GPL-3.0 — see [LICENSE](LICENSE).
+MIT — see [LICENSE](LICENSE).
 
 Author: bshumylo
