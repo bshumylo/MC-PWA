@@ -89,14 +89,25 @@ class PostSubscription implements Action
 
         $now = date(DateTimeUtil::SYSTEM_DATE_TIME_FORMAT);
 
+        $userId = $this->user->getId();
+
         $existing = $this->entityManager
             ->getRDBRepository('PwaSubscription')
             ->where(['endpoint' => $endpoint])
             ->findOne();
 
+        // An endpoint identifies a single browser/device. If a record for this
+        // endpoint already exists but belongs to a different user, the device
+        // is now used by the current account: drop the stale binding and
+        // create a fresh one. We never silently reassign another user's row.
+        if ($existing && $existing->get('userId') !== $userId) {
+            $this->entityManager->removeEntity($existing);
+
+            $existing = null;
+        }
+
         if ($existing) {
             $existing->set([
-                'userId' => $this->user->getId(),
                 'publicKey' => $p256dh,
                 'authKey' => $auth,
                 'platform' => $platform,
@@ -111,7 +122,7 @@ class PostSubscription implements Action
 
         $count = $this->entityManager
             ->getRDBRepository('PwaSubscription')
-            ->where(['userId' => $this->user->getId()])
+            ->where(['userId' => $userId])
             ->count();
 
         if ($count >= self::MAX_SUBSCRIPTIONS_PER_USER) {
@@ -120,7 +131,7 @@ class PostSubscription implements Action
 
         $this->entityManager->createEntity('PwaSubscription', [
             'name' => trim(($this->user->getUserName() ?? '') . ' / ' . ($platform ?? 'unknown')),
-            'userId' => $this->user->getId(),
+            'userId' => $userId,
             'endpoint' => $endpoint,
             'publicKey' => $p256dh,
             'authKey' => $auth,
@@ -133,9 +144,14 @@ class PostSubscription implements Action
 
     private function unsubscribe(string $endpoint): void
     {
+        // Scope the deletion to the current user so one user cannot remove
+        // another user's subscription by guessing/learning their endpoint.
         $subscription = $this->entityManager
             ->getRDBRepository('PwaSubscription')
-            ->where(['endpoint' => $endpoint])
+            ->where([
+                'endpoint' => $endpoint,
+                'userId' => $this->user->getId(),
+            ])
             ->findOne();
 
         if ($subscription) {

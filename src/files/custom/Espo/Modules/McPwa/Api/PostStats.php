@@ -19,6 +19,14 @@ use Espo\ORM\EntityManager;
  */
 class PostStats implements Action
 {
+    /**
+     * Hard cap on the number of stored installation rows. Prevents an
+     * authenticated client from growing the table without bound by posting
+     * an endless stream of fresh anonymousId values. Existing rows are still
+     * updated once the cap is reached; only new rows are refused.
+     */
+    private const MAX_INSTALLATIONS = 100000;
+
     public function __construct(
         private Config $config,
         private EntityManager $entityManager,
@@ -72,6 +80,16 @@ class PostStats implements Action
             ->findOne();
 
         if (!$installation) {
+            $count = $this->entityManager
+                ->getRDBRepository('PwaInstallation')
+                ->count();
+
+            if ($count >= self::MAX_INSTALLATIONS) {
+                // Silently accept without creating a new row: legitimate
+                // clients keep working, table growth stays bounded.
+                return ResponseComposer::json(['success' => true, 'capped' => true]);
+            }
+
             $installation = $this->entityManager->getNewEntity('PwaInstallation');
 
             $installation->set([

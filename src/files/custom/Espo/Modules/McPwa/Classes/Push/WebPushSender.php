@@ -38,6 +38,11 @@ class WebPushSender
             throw new RuntimeException('Invalid endpoint.');
         }
 
+        // SSRF guard: resolve the host and reject private/reserved addresses.
+        // The chosen public IP is pinned for the actual connection to avoid
+        // a DNS-rebinding TOCTOU between this check and the curl request.
+        [$host, $ip] = $this->resolveSafeEndpoint($endpoint);
+
         if (strlen($payload) > self::MAX_PAYLOAD_LENGTH) {
             $payload = substr($payload, 0, self::MAX_PAYLOAD_LENGTH);
         }
@@ -60,7 +65,83 @@ class WebPushSender
             'Authorization: ' . $this->buildVapidAuthorization($endpoint),
         ];
 
-        $this->post($endpoint, $headers, $body);
+        $this->post($endpoint, $host, $ip, $headers, $body);
+    }
+
+    /**
+     * Resolve the endpoint host and ensure it points only to public IP
+     * addresses. Returns [host, pinnedIp].
+     *
+     * @return array{0: string, 1: string}
+     */
+    private function resolveSafeEndpoint(string $endpoint): array
+    {
+        $host = parse_url($endpoint, PHP_URL_HOST);
+
+        if (!is_string($host) || $host === '') {
+            throw new RuntimeException('Invalid endpoint host.');
+        }
+
+        $port = parse_url($endpoint, PHP_URL_PORT);
+
+        if ($port !== null && (int) $port !== 443) {
+            throw new RuntimeException('Endpoint port not allowed.');
+        }
+
+        // Collect candidate IP addresses.
+        $ips = [];
+
+        if (filter_var($host, FILTER_VALIDATE_IP) !== false) {
+            $ips[] = $host;
+        } else {
+            $records = @dns_get_record($host, DNS_A | DNS_AAAA) ?: [];
+
+            foreach ($records as $record) {
+                if (isset($record['ip'])) {
+                    $ips[] = $record['ip'];
+                }
+
+                if (isset($record['ipv6'])) {
+                    $ips[] = $record['ipv6'];
+                }
+            }
+
+            if ($ips === []) {
+                $list = @gethostbynamel($host);
+
+                if (is_array($list)) {
+                    $ips = $list;
+                }
+            }
+        }
+
+        if ($ips === []) {
+            throw new RuntimeException('Cannot resolve endpoint host.');
+        }
+
+        $publicIp = null;
+
+        foreach ($ips as $ip) {
+            if (!$this->isPublicIp($ip)) {
+                // Any private/reserved answer for this host is treated as hostile.
+                throw new RuntimeException('Endpoint host is not allowed.');
+            }
+
+            if ($publicIp === null) {
+                $publicIp = $ip;
+            }
+        }
+
+        return [$host, (string) $publicIp];
+    }
+
+    private function isPublicIp(string $ip): bool
+    {
+        return filter_var(
+            $ip,
+            FILTER_VALIDATE_IP,
+            FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE
+        ) !== false;
     }
 
     /**
@@ -178,7 +259,7 @@ class WebPushSender
         return 'vapid t=' . $jwt . ', k=' . $publicKeyB64;
     }
 
-    private function post(string $endpoint, array $headers, string $body): void
+    private function post(string $endpoint, string $host, string $ip, array $headers, string $body): void
     {
         $ch = curl_init($endpoint);
 
@@ -193,6 +274,9 @@ class WebPushSender
             CURLOPT_SSL_VERIFYHOST => 2,
             CURLOPT_FOLLOWLOCATION => false,
             CURLOPT_PROTOCOLS => CURLPROTO_HTTPS,
+            // Pin the pre-validated public IP so curl cannot be redirected to
+            // a private address by a DNS answer that changed after the check.
+            CURLOPT_RESOLVE => [$host . ':443:' . $ip],
         ]);
 
         $result = curl_exec($ch);

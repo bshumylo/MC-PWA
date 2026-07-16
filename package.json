@@ -1,6 +1,6 @@
 {
   "name": "espocrm-ext-mc-pwa",
-  "version": "1.1.0",
+  "version": "1.1.2",
   "description": "Extension: installable PWA with Web Push notifications, app shortcuts and anonymous install statistics.",
   "scripts": {
     "sa": "vendor/bin/phpstan",

@@ -82,11 +82,14 @@ A server-side self-test for the Web Push crypto stack is available at `tests/web
 
 ## Security
 
-- No secrets are stored in the repository; VAPID keys are generated per-installation.
+- No secrets are stored in the repository; VAPID keys are generated per-installation. The private key is kept in the internal config (`config-internal.php`) and is never exposed through the API.
 - Push payload encryption follows RFC 8291; VAPID signing follows RFC 8292.
-- Authenticated POST endpoints require the `X-Requested-With` header (CSRF protection).
+- All API endpoints require authentication; authenticated POST endpoints additionally require the `X-Requested-With` header (CSRF protection). `testPush` is limited to the current user's own subscriptions.
+- **SSRF protection** — before delivering a push, the target endpoint host is resolved and rejected if it points to any private, loopback, link-local or otherwise reserved address; the validated public IP is pinned for the connection (guards against DNS-rebinding), and only HTTPS on port 443 is allowed.
+- **Subscription ownership** — push subscriptions are scoped to their owner: a user can only remove their own subscription, and an endpoint bound to another account is never silently reassigned.
 - The bottom bar endpoint requires authentication; all button values (URLs, icon classes, colors) are validated and sanitized server-side, and buttons are filtered by the user's access rights.
-- Statistics are anonymous and disabled by default; push subscription collection can be disabled separately.
+- Statistics are anonymous and disabled by default; push subscription collection can be disabled separately. Stored installation rows are capped to bound table growth.
+- All user-supplied input (subscription keys, endpoints, identifiers, colors, icon classes, labels) is strictly validated and sanitized; the client renders bar items via DOM APIs (no `innerHTML`) with `rel="noopener noreferrer"` on external links.
 
 ## License
 
