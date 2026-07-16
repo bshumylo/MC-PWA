@@ -93,6 +93,6 @@ A server-side self-test for the Web Push crypto stack is available at `tests/web
 
 ## License
 
-MIT — see [LICENSE](LICENSE).
+AGPL-3.0 — see [LICENSE](LICENSE).
 
 Author: bshumylo
