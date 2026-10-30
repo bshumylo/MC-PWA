@@ -38,13 +38,19 @@ class WebPushSender
             throw new RuntimeException('Invalid endpoint.');
         }
 
+        $allowedHost = parse_url($endpoint, PHP_URL_HOST);
+
+        if (!is_string($allowedHost) || !EndpointGuard::isHostAllowed($allowedHost, $this->getExtraHosts())) {
+            throw new RuntimeException('Endpoint host is not allowed.');
+        }
+
         // SSRF guard: resolve the host and reject private/reserved addresses.
         // The chosen public IP is pinned for the actual connection to avoid
         // a DNS-rebinding TOCTOU between this check and the curl request.
         [$host, $ip] = $this->resolveSafeEndpoint($endpoint);
 
         if (strlen($payload) > self::MAX_PAYLOAD_LENGTH) {
-            $payload = substr($payload, 0, self::MAX_PAYLOAD_LENGTH);
+            $payload = mb_strcut($payload, 0, self::MAX_PAYLOAD_LENGTH);
         }
 
         $userPublicKey = self::base64UrlDecode($p256dhB64);
@@ -137,11 +143,19 @@ class WebPushSender
 
     private function isPublicIp(string $ip): bool
     {
-        return filter_var(
-            $ip,
-            FILTER_VALIDATE_IP,
-            FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE
-        ) !== false;
+        return EndpointGuard::isPublicIp($ip);
+    }
+
+    /**
+     * Admin-defined extra allowed push host suffixes (config `pwaPushExtraHosts`).
+     *
+     * @return string[]
+     */
+    private function getExtraHosts(): array
+    {
+        $hosts = $this->config->get('pwaPushExtraHosts');
+
+        return is_array($hosts) ? array_values(array_filter($hosts, 'is_string')) : [];
     }
 
     /**
@@ -233,11 +247,14 @@ class WebPushSender
         $audience = ($parts['scheme'] ?? 'https') . '://' . ($parts['host'] ?? '');
 
         $subject = $this->config->get('outboundEmailFromAddress');
+        $siteUrl = (string) $this->config->get('siteUrl');
 
         $claims = [
             'aud' => $audience,
             'exp' => time() + 12 * 3600,
-            'sub' => $subject ? 'mailto:' . $subject : 'https://espocrm.com',
+            'sub' => $subject
+                ? 'mailto:' . $subject
+                : (str_starts_with($siteUrl, 'https://') ? $siteUrl : 'mailto:admin@localhost'),
         ];
 
         $header = ['typ' => 'JWT', 'alg' => 'ES256'];
@@ -268,8 +285,19 @@ class WebPushSender
             CURLOPT_HTTPHEADER => $headers,
             CURLOPT_POSTFIELDS => $body,
             CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_TIMEOUT => 15,
-            CURLOPT_CONNECTTIMEOUT => 10,
+            CURLOPT_TIMEOUT => 6,
+            CURLOPT_CONNECTTIMEOUT => 3,
+            // Never route through a proxy: it would ignore the pinned IP below.
+            CURLOPT_PROXY => '',
+            CURLOPT_NOPROXY => '*',
+            // Push services reply with an empty or tiny body. Abort anything larger.
+            CURLOPT_WRITEFUNCTION => static function ($ch, string $chunk): int {
+                static $received = 0;
+
+                $received += strlen($chunk);
+
+                return $received > 65536 ? -1 : strlen($chunk);
+            },
             CURLOPT_SSL_VERIFYPEER => true,
             CURLOPT_SSL_VERIFYHOST => 2,
             CURLOPT_FOLLOWLOCATION => false,
@@ -280,6 +308,8 @@ class WebPushSender
         ]);
 
         $result = curl_exec($ch);
+
+        // With a write callback curl_exec() returns true or false, never the body.
 
         $statusCode = (int) curl_getinfo($ch, CURLINFO_RESPONSE_CODE);
         $error = curl_error($ch);

@@ -46,8 +46,8 @@ class PostStats implements Action
             return ResponseComposer::json(['disabled' => true]);
         }
 
-        if ($this->user->isPortal()) {
-            throw new Forbidden('Not allowed for portal users.');
+        if ($this->user->isPortal() || !$this->user->isRegular() && !$this->user->isAdmin()) {
+            throw new Forbidden('Not allowed for this user type.');
         }
 
         $body = $request->getParsedBody();
@@ -108,7 +108,8 @@ class PostStats implements Action
             'lastSeenAt' => $now,
         ]);
 
-        $this->entityManager->saveEntity($installation);
+        // Skip hooks so that no createdBy/modifiedBy link to the user is stored.
+        $this->entityManager->saveEntity($installation, ['skipHooks' => true]);
 
         return ResponseComposer::json(['success' => true]);
     }

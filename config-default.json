@@ -18,6 +18,6 @@
         "defaultGroup": "www-data",
         "siteUrl": "http://localhost/ext-mc-pwa/site",
         "adminUsername": "admin",
-        "adminPassword": "1"
+        "adminPassword": "change-me"
     }
 }

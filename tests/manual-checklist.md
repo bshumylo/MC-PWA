@@ -8,7 +8,7 @@
 
 ## 1. Встановлення
 
-- [ ] Адміністрація → Розширення → завантажити `mc-pwa-1.0.0.zip` → Встановити
+- [ ] Адміністрація → Розширення → завантажити `mc-pwa-<версія>.zip` → Встановити
 - [ ] `php tests/webpush-selftest.php` на сервері → `ALL TESTS PASSED`
 - [ ] Адміністрація: з'явився розділ **PWA** (Налаштування, Встановлення, Push-підписки)
 - [ ] У Налаштуваннях PWA заповнено «Публічний ключ VAPID» (генерується автоматично)
@@ -45,11 +45,21 @@
 
 ## 6. Безпека
 
-- [ ] `?entryPoint=pwaSubscribe` GET-запитом → помилка (POST expected)
-- [ ] POST на `pwaSubscribe` без заголовка `X-Requested-With` → 403
-- [ ] POST на `pwaSubscribe` без логіну (інкогніто) → 401/помилка авторизації
-- [ ] Під звичайним користувачем: `#PwaSubscription` та `#PwaInstallation` недоступні (ACL)
+- [ ] `GET /api/v1/McPwa/subscription` → 404/405 (маршрут лише POST)
+- [ ] `POST /api/v1/McPwa/subscription` без заголовка `X-Requested-With` → 403
+- [ ] `POST /api/v1/McPwa/subscription` без логіну (curl без авторизації) → 401
+- [ ] Під звичайним користувачем: `GET /api/v1/PwaSubscription` та `/api/v1/PwaInstallation` → 403 (лише адміністратор читає)
+- [ ] Під адміністратором: `GET /api/v1/PwaSubscription` — `authKey`/`publicKey` видимі лише адміністратору
+- [ ] `POST /api/v1/PwaSubscription` та `PUT` будь-ким (включно з адміністратором) → 403
 - [ ] REST API: `GET /api/v1/Settings` під звичайним користувачем не містить `pwaVapidPrivateKey`
+- [ ] Підписка з endpoint поза списком push-сервісів (напр. `https://example.com/x`) → 400
+- [ ] Підписка на endpoint, який належить іншому користувачу → 409
+- [ ] «Тестовий push» двічі поспіль (< 30 с) → друга спроба 403
+- [ ] Користувач без доступу на читання запису (напр. Opportunity) отримує згадку в ньому → push має загальний текст, без назви запису
+- [ ] Вихід з системи на пристрої → підписка зникає з Адміністрація → PWA → Push-підписки
+- [ ] Деактивація користувача → його push-підписки видалені
+- [ ] `?entryPoint=pwaIcon&size=512` двічі → друга відповідь `304` з `If-None-Match`, файл у `data/cache/mc-pwa/`
+- [ ] Користувач API (тип API) → `POST /api/v1/McPwa/stats` → 403
 
 ## 7. iOS (за наявності пристрою, iOS 16.4+)
 

@@ -233,7 +233,11 @@ class GetBottomBar implements Action
             return true;
         }
 
-        if (str_starts_with($url, 'https://') || str_starts_with($url, 'http://')) {
+        if (preg_match('/[\\\\\s\x00-\x1f\x7f]/', $url)) {
+            return false;
+        }
+
+        if (str_starts_with($url, 'https://')) {
             return true;
         }
 

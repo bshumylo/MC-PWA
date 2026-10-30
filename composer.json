@@ -1,7 +1,10 @@
 {
     "name": "espocrm/ext-mc-pwa",
     "require": {
-        "php": ">=8.3"
+        "php": ">=8.3",
+        "ext-openssl": "*",
+        "ext-curl": "*",
+        "ext-gd": "*"
     },
     "autoload-dev": {
         "psr-4": {

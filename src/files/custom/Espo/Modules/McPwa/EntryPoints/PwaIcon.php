@@ -27,6 +27,12 @@ class PwaIcon implements EntryPoint
 
     private const SIZES = [192, 512];
 
+    /** Source images above these limits are refused before decoding. */
+    private const MAX_SIDE = 4096;
+    private const MAX_PIXELS = 16000000;
+
+    private const CACHE_DIR = 'data/cache/mc-pwa';
+
     public function __construct(
         private Config $config,
         private EntityManager $entityManager,
@@ -47,12 +53,31 @@ class PwaIcon implements EntryPoint
             ?? $this->getAttachmentIcon('companyLogoId', $size, $maskable)
             ?? $this->generatePlaceholder($size);
 
+        $response->setHeader('X-Content-Type-Options', 'nosniff');
+
+        if ($content === null || $content === '') {
+            $response
+                ->setStatus(404)
+                ->setHeader('Cache-Control', 'no-store');
+
+            return;
+        }
+
+        $etag = '"' . md5($content) . '"';
+
+        $response
+            ->setHeader('ETag', $etag)
+            ->setHeader('Cache-Control', 'public, max-age=600');
+
+        if ($request->getHeader('If-None-Match') === $etag) {
+            $response->setStatus(304);
+
+            return;
+        }
+
         $response
             ->setHeader('Content-Type', 'image/png')
-            ->setHeader('Cache-Control', 'public, max-age=600')
-            ->setHeader('X-Content-Type-Options', 'nosniff');
-
-        $response->writeBody($content ?? '');
+            ->writeBody($content);
     }
 
     private function getAttachmentIcon(string $configParam, int $size, bool $maskable = false): ?string
@@ -74,13 +99,51 @@ class PwaIcon implements EntryPoint
             return null;
         }
 
+        $cacheFile = self::CACHE_DIR . '/icon-' . sha1(implode('|', [
+            $attachmentId,
+            (string) $attachment->get('modifiedAt'),
+            $size,
+            (int) $maskable,
+            (string) $this->config->get('pwaBackgroundColor'),
+            (string) $this->config->get('pwaThemeColor'),
+        ])) . '.png';
+
+        if (is_file($cacheFile)) {
+            $cached = @file_get_contents($cacheFile);
+
+            if ($cached !== false && $cached !== '') {
+                return $cached;
+            }
+        }
+
         try {
             $source = $this->fileStorageManager->getContents($attachment);
         } catch (\Throwable) {
             return null;
         }
 
-        return $this->resizeToSquarePng($source, $size, $maskable);
+        $info = @getimagesizefromstring($source);
+
+        if (
+            !$info ||
+            $info[0] < 1 || $info[1] < 1 ||
+            $info[0] > self::MAX_SIDE || $info[1] > self::MAX_SIDE ||
+            $info[0] * $info[1] > self::MAX_PIXELS
+        ) {
+            return null;
+        }
+
+        $png = $this->resizeToSquarePng($source, $size, $maskable);
+
+        if ($png !== null) {
+            if (!is_dir(self::CACHE_DIR)) {
+                @mkdir(self::CACHE_DIR, 0775, true);
+            }
+
+            @file_put_contents($cacheFile, $png, LOCK_EX);
+        }
+
+        return $png;
     }
 
     private function resizeToSquarePng(string $source, int $size, bool $maskable = false): ?string
