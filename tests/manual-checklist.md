@@ -61,6 +61,12 @@
 - [ ] `?entryPoint=pwaIcon&size=512` двічі → друга відповідь `304` з `If-None-Match`, файл у `data/cache/mc-pwa/`
 - [ ] Користувач API (тип API) → `POST /api/v1/McPwa/stats` → 403
 
+## 6a. Видалення розширення
+
+- [ ] Адміністрація → Розширення → Видалити → таблиці `pwa_subscription` та `pwa_installation` порожні
+- [ ] Параметри `pwa*` (включно з `pwaVapidPrivateKey`) відсутні в `data/config.php` та `data/config-internal.php`
+- [ ] Заплановане завдання «McPwaSendReminderPush» видалене, каталог `data/cache/mc-pwa` відсутній
+
 ## 7. iOS (за наявності пристрою, iOS 16.4+)
 
 - [ ] Safari → Поділитись → «На початковий екран»
