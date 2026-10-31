@@ -35,6 +35,6 @@ class PwaConfig implements EntryPoint
             ->setHeader('Content-Type', 'application/json; charset=utf-8')
             ->setHeader('Cache-Control', 'no-cache');
 
-        $response->writeBody(json_encode($data));
+        $response->writeBody(json_encode($data, JSON_THROW_ON_ERROR));
     }
 }

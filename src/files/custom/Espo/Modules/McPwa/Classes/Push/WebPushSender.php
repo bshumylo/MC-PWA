@@ -184,10 +184,13 @@ class WebPushSender
 
         $userKeyPem = self::rawP256PublicToPem($userPublicKey);
 
-        $sharedSecret = openssl_pkey_derive(
-            openssl_pkey_get_public($userKeyPem),
-            $ephemeralKey
-        );
+        $userKey = openssl_pkey_get_public($userKeyPem);
+
+        if ($userKey === false) {
+            throw new RuntimeException('Invalid subscription public key.');
+        }
+
+        $sharedSecret = openssl_pkey_derive($userKey, $ephemeralKey);
 
         if ($sharedSecret === false) {
             throw new RuntimeException('ECDH derivation failed.');
@@ -276,6 +279,9 @@ class WebPushSender
         return 'vapid t=' . $jwt . ', k=' . $publicKeyB64;
     }
 
+    /**
+     * @param string[] $headers
+     */
     private function post(string $endpoint, string $host, string $ip, array $headers, string $body): void
     {
         $ch = curl_init($endpoint);

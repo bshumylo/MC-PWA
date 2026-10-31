@@ -13,6 +13,7 @@ use Espo\Core\Utils\Log;
 use Espo\Core\Utils\Language;
 use Espo\Entities\User;
 use Espo\Modules\McPwa\Classes\Push\ExpiredSubscriptionException;
+use Espo\Modules\McPwa\Classes\Text;
 use Espo\Modules\McPwa\Classes\Push\WebPushSender;
 use Espo\ORM\EntityManager;
 
@@ -78,7 +79,7 @@ class PostTestPush implements Action
 
         $payload = json_encode([
             'title' => $appName,
-            'body' => $this->language->translate('testPushBody', 'mcPwaPush'),
+            'body' => Text::translate($this->language, 'testPushBody', 'mcPwaPush'),
             'url' => '',
             'tag' => 'espo-test-' . time(),
         ], JSON_UNESCAPED_UNICODE);

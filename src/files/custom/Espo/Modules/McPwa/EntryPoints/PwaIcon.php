@@ -80,6 +80,9 @@ class PwaIcon implements EntryPoint
             ->writeBody($content);
     }
 
+    /**
+     * @param positive-int $size
+     */
     private function getAttachmentIcon(string $configParam, int $size, bool $maskable = false): ?string
     {
         $attachmentId = $this->config->get($configParam);
@@ -146,6 +149,9 @@ class PwaIcon implements EntryPoint
         return $png;
     }
 
+    /**
+     * @param positive-int $size
+     */
     private function resizeToSquarePng(string $source, int $size, bool $maskable = false): ?string
     {
         if (!function_exists('imagecreatefromstring')) {
@@ -172,13 +178,13 @@ class PwaIcon implements EntryPoint
                     ?: '#337ab7')
             );
 
-            imagefill($canvas, 0, 0, imagecolorallocate($canvas, $r, $g, $b));
+            imagefill($canvas, 0, 0, $this->allocate($canvas, $r, $g, $b));
             imagealphablending($canvas, true);
         } else {
             imagealphablending($canvas, false);
             imagesavealpha($canvas, true);
 
-            $transparent = imagecolorallocatealpha($canvas, 0, 0, 0, 127);
+            $transparent = (int) imagecolorallocatealpha($canvas, 0, 0, 0, 127);
             imagefill($canvas, 0, 0, $transparent);
             imagealphablending($canvas, true);
         }
@@ -219,6 +225,9 @@ class PwaIcon implements EntryPoint
      * A solid theme-color square with the first letter of the app name.
      * Used only until the admin uploads a real icon.
      */
+    /**
+     * @param positive-int $size
+     */
     private function generatePlaceholder(int $size): ?string
     {
         if (!function_exists('imagecreatetruecolor')) {
@@ -231,8 +240,7 @@ class PwaIcon implements EntryPoint
             (string) ($this->config->get('pwaThemeColor') ?: '#337ab7')
         );
 
-        $background = imagecolorallocate($canvas, $r, $g, $b);
-        imagefill($canvas, 0, 0, $background);
+        imagefill($canvas, 0, 0, $this->allocate($canvas, $r, $g, $b));
 
         $appName = $this->config->get('pwaAppName')
             ?: $this->config->get('applicationName')
@@ -246,12 +254,12 @@ class PwaIcon implements EntryPoint
 
         // Scale the built-in font up to ~50% of the icon height.
         $font = 5;
-        $charWidth = imagefontwidth($font);
-        $charHeight = imagefontheight($font);
+        $charWidth = max(1, imagefontwidth($font));
+        $charHeight = max(1, imagefontheight($font));
 
         $letterImage = imagecreatetruecolor($charWidth, $charHeight);
-        imagefill($letterImage, 0, 0, imagecolorallocate($letterImage, $r, $g, $b));
-        imagestring($letterImage, $font, 0, 0, $letter, imagecolorallocate($letterImage, 255, 255, 255));
+        imagefill($letterImage, 0, 0, $this->allocate($letterImage, $r, $g, $b));
+        imagestring($letterImage, $font, 0, 0, $letter, $this->allocate($letterImage, 255, 255, 255));
 
         $targetHeight = (int) ($size * 0.5);
         $targetWidth = (int) ($charWidth * $targetHeight / $charHeight);
@@ -277,7 +285,17 @@ class PwaIcon implements EntryPoint
     }
 
     /**
-     * @return array{0: int, 1: int, 2: int}
+     * @param int<0, 255> $r
+     * @param int<0, 255> $g
+     * @param int<0, 255> $b
+     */
+    private function allocate(\GdImage $image, int $r, int $g, int $b): int
+    {
+        return (int) imagecolorallocate($image, $r, $g, $b);
+    }
+
+    /**
+     * @return array{0: int<0, 255>, 1: int<0, 255>, 2: int<0, 255>}
      */
     private function parseHexColor(string $hex): array
     {
@@ -291,10 +309,8 @@ class PwaIcon implements EntryPoint
             return [51, 122, 183];
         }
 
-        return [
-            (int) hexdec(substr($hex, 0, 2)),
-            (int) hexdec(substr($hex, 2, 2)),
-            (int) hexdec(substr($hex, 4, 2)),
-        ];
+        $value = (int) hexdec($hex);
+
+        return [($value >> 16) & 0xFF, ($value >> 8) & 0xFF, $value & 0xFF];
     }
 }

@@ -6,6 +6,7 @@ use Espo\Core\Api\Request;
 use Espo\Core\Api\Response;
 use Espo\Core\EntryPoint\EntryPoint;
 use Espo\Core\EntryPoint\Traits\NoAuth;
+use Espo\Core\Utils\File\Exceptions\FileError;
 use Espo\Core\Utils\File\Manager as FileManager;
 
 /**
@@ -24,13 +25,21 @@ class PwaServiceWorker implements EntryPoint
 
     public function run(Request $request, Response $response): void
     {
-        $content = $this->fileManager->getContents(self::FILE_PATH);
+        try {
+            $content = $this->fileManager->getContents(self::FILE_PATH);
+        } catch (FileError) {
+            $response
+                ->setStatus(404)
+                ->setHeader('Cache-Control', 'no-store');
+
+            return;
+        }
 
         $response
             ->setHeader('Content-Type', 'application/javascript; charset=utf-8')
             ->setHeader('Cache-Control', 'no-cache')
             ->setHeader('X-Content-Type-Options', 'nosniff');
 
-        $response->writeBody($content !== false ? $content : '');
+        $response->writeBody($content);
     }
 }
