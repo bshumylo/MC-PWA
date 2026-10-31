@@ -228,7 +228,7 @@ class WebPushSender
         // aes128gcm header: salt(16) | rs(4) | idlen(1) | keyid(65) | records.
         return $salt .
             pack('N', self::RECORD_SIZE) .
-            chr(strlen($ephemeralPublic)) .
+            pack('C', strlen($ephemeralPublic)) .
             $ephemeralPublic .
             $cipherText . $tag;
     }
