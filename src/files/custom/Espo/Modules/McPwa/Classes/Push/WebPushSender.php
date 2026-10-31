@@ -310,7 +310,8 @@ class WebPushSender
             CURLOPT_PROTOCOLS => CURLPROTO_HTTPS,
             // Pin the pre-validated public IP so curl cannot be redirected to
             // a private address by a DNS answer that changed after the check.
-            CURLOPT_RESOLVE => [$host . ':443:' . $ip],
+            // IPv6 addresses must be bracketed, otherwise curl ignores the entry and resolves the host again.
+            CURLOPT_RESOLVE => [$host . ':443:' . (str_contains($ip, ':') ? '[' . $ip . ']' : $ip)],
         ]);
 
         $result = curl_exec($ch);
