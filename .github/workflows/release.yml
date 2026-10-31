@@ -1,0 +1,74 @@
+name: Release
+
+# Creates a tag and a GitHub release with the extension zip whenever a new
+# version (extension.json) lands on main. Nothing happens when the tag exists.
+on:
+  push:
+    branches: [main]
+    paths:
+      - extension.json
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Read version
+        id: version
+        run: |
+          version=$(node -p "require('./extension.json').version")
+          if ! [[ "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "::error::Invalid version in extension.json: $version"
+            exit 1
+          fi
+          package_version=$(node -p "require('./package.json').version")
+          if [ "$version" != "$package_version" ]; then
+            echo "::error::extension.json ($version) and package.json ($package_version) versions differ"
+            exit 1
+          fi
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+
+      - name: Skip if the release exists
+        id: exists
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if gh release view "${{ steps.version.outputs.version }}" >/dev/null 2>&1; then
+            echo "Release ${{ steps.version.outputs.version }} already exists."
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - uses: actions/setup-node@v4
+        if: steps.exists.outputs.exists == 'false'
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Build extension package
+        if: steps.exists.outputs.exists == 'false'
+        run: |
+          npm ci --ignore-scripts
+          node build --extension
+          test -f "build/mc-pwa-${{ steps.version.outputs.version }}.zip"
+
+      - name: Create tag and release
+        if: steps.exists.outputs.exists == 'false'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "${{ steps.version.outputs.version }}" \
+            "build/mc-pwa-${{ steps.version.outputs.version }}.zip" \
+            --target "${{ github.sha }}" \
+            --title "v${{ steps.version.outputs.version }}" \
+            --generate-notes
