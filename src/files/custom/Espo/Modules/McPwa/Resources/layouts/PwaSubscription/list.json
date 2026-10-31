@@ -1,6 +1,20 @@
 [
-    {"name": "user"},
-    {"name": "platform"},
-    {"name": "createdAt"},
-    {"name": "modifiedAt"}
+    {
+        "name": "user"
+    },
+    {
+        "name": "platform"
+    },
+    {
+        "name": "lastSuccessAt"
+    },
+    {
+        "name": "failureCount"
+    },
+    {
+        "name": "createdAt"
+    },
+    {
+        "name": "modifiedAt"
+    }
 ]

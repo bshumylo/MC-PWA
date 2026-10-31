@@ -1,5 +1,8 @@
 {
     "McPwaSendReminderPush": {
         "jobClassName": "Espo\\Modules\\McPwa\\Jobs\\SendReminderPush"
+    },
+    "McPwaCleanup": {
+        "jobClassName": "Espo\\Modules\\McPwa\\Jobs\\Cleanup"
     }
 }

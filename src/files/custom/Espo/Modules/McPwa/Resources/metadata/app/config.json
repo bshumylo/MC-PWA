@@ -48,6 +48,12 @@
         },
         "pwaVapidPrivateKey": {
             "level": "internal"
+        },
+        "pwaSubscriptionMaxFailures": {
+            "level": "admin"
+        },
+        "pwaInstallationRetentionDays": {
+            "level": "admin"
         }
     }
 }

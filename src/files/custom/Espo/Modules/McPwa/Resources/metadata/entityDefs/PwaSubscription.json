@@ -57,6 +57,25 @@
             "readOnly": true,
             "onlyAdmin": true,
             "utility": true
+        },
+        "lastSuccessAt": {
+            "type": "datetime",
+            "readOnly": true
+        },
+        "lastErrorAt": {
+            "type": "datetime",
+            "readOnly": true
+        },
+        "lastError": {
+            "type": "varchar",
+            "maxLength": 255,
+            "readOnly": true
+        },
+        "failureCount": {
+            "type": "int",
+            "min": 0,
+            "default": 0,
+            "readOnly": true
         }
     },
     "links": {

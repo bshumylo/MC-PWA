@@ -9,12 +9,10 @@ use Espo\Core\Api\ResponseComposer;
 use Espo\Core\Exceptions\Forbidden;
 use Espo\Core\Utils\Config;
 use Espo\Core\Utils\DateTime as DateTimeUtil;
-use Espo\Core\Utils\Log;
 use Espo\Core\Utils\Language;
 use Espo\Entities\User;
-use Espo\Modules\McPwa\Classes\Push\ExpiredSubscriptionException;
+use Espo\Modules\McPwa\Classes\Push\Dispatcher;
 use Espo\Modules\McPwa\Classes\Text;
-use Espo\Modules\McPwa\Classes\Push\WebPushSender;
 use Espo\ORM\EntityManager;
 
 /**
@@ -33,9 +31,8 @@ class PostTestPush implements Action
         private Config $config,
         private EntityManager $entityManager,
         private User $user,
-        private WebPushSender $sender,
+        private Dispatcher $dispatcher,
         private Language $language,
-        private Log $log,
     ) {}
 
     public function process(Request $request): Response
@@ -103,26 +100,7 @@ class PostTestPush implements Action
                 continue;
             }
 
-            try {
-                $this->sender->send(
-                    (string) $subscription->get('endpoint'),
-                    (string) $subscription->get('publicKey'),
-                    (string) $subscription->get('authKey'),
-                    (string) $payload
-                );
-
-                $item['status'] = 'sent';
-            } catch (ExpiredSubscriptionException) {
-                $this->entityManager->removeEntity($subscription);
-
-                $item['status'] = 'expired';
-            } catch (\Throwable $e) {
-                $item['status'] = 'error';
-
-                $this->log->warning(
-                    'McPwa: test push failed for subscription ' . $subscription->getId() . ': ' . $e->getMessage()
-                );
-            }
+            $item['status'] = $this->dispatcher->deliver($subscription, (string) $payload);
 
             $results[] = $item;
         }

@@ -1,0 +1,19 @@
+{
+    "fields": {
+        "pwaPushTypes": "Типи push-сповіщень",
+        "pwaQuietHoursEnabled": "Тихі години",
+        "pwaQuietHoursStart": "З",
+        "pwaQuietHoursEnd": "До"
+    },
+    "options": {
+        "pwaPushTypes": {
+            "Assign": "Призначення",
+            "EmailReceived": "Новий лист",
+            "Message": "Повідомлення",
+            "Note": "Допис у стрічці",
+            "MentionInPost": "Згадка",
+            "System": "Системні",
+            "Reminder": "Нагадування"
+        }
+    }
+}

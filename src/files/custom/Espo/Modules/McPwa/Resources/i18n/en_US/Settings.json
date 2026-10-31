@@ -13,7 +13,9 @@
         "pwaVapidPublicKey": "VAPID Public Key",
         "pwaBottomBarEnabled": "Bottom Navigation Bar Enabled",
         "pwaBottomBarShowLabels": "Show Button Labels",
-        "pwaBottomBarItems": "Bottom Bar Buttons"
+        "pwaBottomBarItems": "Bottom Bar Buttons",
+        "pwaSubscriptionMaxFailures": "Max Delivery Failures",
+        "pwaInstallationRetentionDays": "Installation Retention (days)"
     },
     "tooltips": {
         "pwaEnabled": "Allows users to install the system as an app on their devices.",
@@ -29,7 +31,9 @@
         "pwaVapidPublicKey": "Generated automatically on installation. Used by browsers to authenticate push messages.",
         "pwaBottomBarEnabled": "Shows a bottom bar with navigation buttons in the installed app on mobile devices.",
         "pwaBottomBarShowLabels": "Shows a small text label under each icon. When disabled, only icons are shown (slightly larger).",
-        "pwaBottomBarItems": "Buttons of the bottom bar (max 8, 3-5 recommended). Works like the Tab List in User Interface settings: add entity tabs or custom URL buttons (label, icon, icon color, access options), reorder by drag and drop, edit URL buttons via the pencil icon."
+        "pwaBottomBarItems": "Buttons of the bottom bar (max 8, 3-5 recommended). Works like the Tab List in User Interface settings: add entity tabs or custom URL buttons (label, icon, icon color, access options), reorder by drag and drop, edit URL buttons via the pencil icon.",
+        "pwaSubscriptionMaxFailures": "A subscription is removed by the daily cleanup after this many failed deliveries in a row. 0 disables the removal.",
+        "pwaInstallationRetentionDays": "Anonymous installation records not seen for this many days are removed by the daily cleanup. 0 keeps them forever."
     },
     "options": {
         "pwaPushNotificationTypes": {

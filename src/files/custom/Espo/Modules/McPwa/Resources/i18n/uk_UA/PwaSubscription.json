@@ -8,6 +8,10 @@
         "platform": "Платформа",
         "userAgent": "User Agent",
         "createdAt": "Створено",
-        "modifiedAt": "Змінено"
+        "modifiedAt": "Змінено",
+        "lastSuccessAt": "Остання доставка",
+        "lastErrorAt": "Остання помилка о",
+        "lastError": "Остання помилка",
+        "failureCount": "Збоїв поспіль"
     }
 }

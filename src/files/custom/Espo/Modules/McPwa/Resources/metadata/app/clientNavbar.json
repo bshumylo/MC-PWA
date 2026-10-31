@@ -1,0 +1,12 @@
+{
+    "menuItems": {
+        "pwaPushSettings": {
+            "order": 2,
+            "groupIndex": 1,
+            "labelTranslation": "Global.labels.Push Notification Settings",
+            "handler": "mc-pwa:handlers/navbar-menu",
+            "actionFunction": "pushSettings",
+            "iconClass": "fas fa-bell"
+        }
+    }
+}

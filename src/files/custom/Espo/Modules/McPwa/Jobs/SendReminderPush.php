@@ -10,8 +10,8 @@ use Espo\Core\Utils\Language;
 use Espo\Core\AclManager;
 use Espo\Core\Utils\Log;
 use Espo\Entities\User;
-use Espo\Modules\McPwa\Classes\Push\ExpiredSubscriptionException;
-use Espo\Modules\McPwa\Classes\Push\WebPushSender;
+use Espo\Modules\McPwa\Classes\Push\Dispatcher;
+use Espo\Modules\McPwa\Classes\Push\UserPreferences;
 use Espo\Modules\McPwa\Classes\Text;
 use Espo\ORM\Entity;
 use Espo\ORM\EntityManager;
@@ -41,7 +41,8 @@ class SendReminderPush implements JobDataLess
     public function __construct(
         private Config $config,
         private EntityManager $entityManager,
-        private WebPushSender $sender,
+        private Dispatcher $dispatcher,
+        private UserPreferences $userPreferences,
         private Language $language,
         private Log $log,
         private InjectableFactory $injectableFactory,
@@ -95,6 +96,10 @@ class SendReminderPush implements JobDataLess
                 continue;
             }
 
+            if (!$this->userPreferences->isAllowed($user, 'Reminder')) {
+                continue;
+            }
+
             if (!array_key_exists($userId, $subscriptionsByUser)) {
                 $subscriptionsByUser[$userId] = iterator_to_array(
                     $this->entityManager
@@ -126,21 +131,7 @@ class SendReminderPush implements JobDataLess
             }
 
             foreach ($subscriptions as $subscription) {
-                try {
-                    $this->sender->send(
-                        (string) $subscription->get('endpoint'),
-                        (string) $subscription->get('publicKey'),
-                        (string) $subscription->get('authKey'),
-                        $payload
-                    );
-                } catch (ExpiredSubscriptionException) {
-                    $this->entityManager->removeEntity($subscription);
-                } catch (\Throwable $e) {
-                    $this->log->warning(
-                        'McPwa: reminder push failed for subscription ' .
-                        $subscription->getId() . ': ' . $e->getMessage()
-                    );
-                }
+                $this->dispatcher->deliver($subscription, $payload);
             }
         }
 

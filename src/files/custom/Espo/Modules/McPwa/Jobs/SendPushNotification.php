@@ -4,11 +4,10 @@ namespace Espo\Modules\McPwa\Jobs;
 
 use Espo\Core\Job\Job;
 use Espo\Core\Job\Job\Data;
-use Espo\Core\Utils\Log;
 use Espo\Entities\User;
-use Espo\Modules\McPwa\Classes\Push\ExpiredSubscriptionException;
+use Espo\Modules\McPwa\Classes\Push\Dispatcher;
 use Espo\Modules\McPwa\Classes\Push\PayloadBuilder;
-use Espo\Modules\McPwa\Classes\Push\WebPushSender;
+use Espo\Modules\McPwa\Classes\Push\UserPreferences;
 use Espo\ORM\EntityManager;
 
 /**
@@ -20,8 +19,8 @@ class SendPushNotification implements Job
     public function __construct(
         private EntityManager $entityManager,
         private PayloadBuilder $payloadBuilder,
-        private WebPushSender $sender,
-        private Log $log,
+        private Dispatcher $dispatcher,
+        private UserPreferences $userPreferences,
     ) {}
 
     public function run(Data $data): void
@@ -56,6 +55,10 @@ class SendPushNotification implements Job
             return;
         }
 
+        if (!$this->userPreferences->isAllowed($user, (string) $notification->get('type'))) {
+            return;
+        }
+
         $subscriptions = $this->entityManager
             ->getRDBRepository('PwaSubscription')
             ->where(['userId' => $userId])
@@ -71,21 +74,7 @@ class SendPushNotification implements Job
         }
 
         foreach ($subscriptions as $subscription) {
-            try {
-                $this->sender->send(
-                    (string) $subscription->get('endpoint'),
-                    (string) $subscription->get('publicKey'),
-                    (string) $subscription->get('authKey'),
-                    $payload
-                );
-            } catch (ExpiredSubscriptionException) {
-                $this->entityManager->removeEntity($subscription);
-            } catch (\Throwable $e) {
-                $this->log->warning(
-                    'McPwa: push send failed for subscription ' .
-                    $subscription->getId() . ': ' . $e->getMessage()
-                );
-            }
+            $this->dispatcher->deliver($subscription, $payload);
         }
     }
 }

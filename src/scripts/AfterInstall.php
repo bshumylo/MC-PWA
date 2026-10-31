@@ -22,6 +22,8 @@ class AfterInstall
             'pwaEnabled' => true,
             'pwaPushEnabled' => true,
             'pwaStatsEnabled' => false,
+            'pwaSubscriptionMaxFailures' => 10,
+            'pwaInstallationRetentionDays' => 365,
             'pwaSubscriptionsEnabled' => true,
             'pwaBottomBarEnabled' => false,
             'pwaBottomBarShowLabels' => true,
@@ -117,27 +119,35 @@ class AfterInstall
     }
 
     /**
-     * Creates the every-minute reminder-push scheduled job if it is absent.
+     * Creates the scheduled jobs of the extension that are absent: the every-minute reminder push
+     * and the daily cleanup.
      */
     private function ensureScheduledJob(Container $container): void
     {
         $entityManager = $container->getByClass(\Espo\ORM\EntityManager::class);
 
-        $existing = $entityManager
-            ->getRDBRepository('ScheduledJob')
-            ->where(['job' => 'McPwaSendReminderPush'])
-            ->findOne();
+        $jobs = [
+            'McPwaSendReminderPush' => ['MC PWA: Reminder Push', '* * * * *'],
+            'McPwaCleanup' => ['MC PWA: Cleanup', '30 3 * * *'],
+        ];
 
-        if ($existing) {
-            return;
+        foreach ($jobs as $job => [$name, $scheduling]) {
+            $existing = $entityManager
+                ->getRDBRepository('ScheduledJob')
+                ->where(['job' => $job])
+                ->findOne();
+
+            if ($existing) {
+                continue;
+            }
+
+            $entityManager->createEntity('ScheduledJob', [
+                'name' => $name,
+                'job' => $job,
+                'status' => 'Active',
+                'scheduling' => $scheduling,
+            ]);
         }
-
-        $entityManager->createEntity('ScheduledJob', [
-            'name' => 'MC PWA: Reminder Push',
-            'job' => 'McPwaSendReminderPush',
-            'status' => 'Active',
-            'scheduling' => '* * * * *',
-        ]);
     }
 
     /**
