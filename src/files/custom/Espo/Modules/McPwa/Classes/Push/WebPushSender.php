@@ -314,8 +314,6 @@ class WebPushSender
         $statusCode = (int) curl_getinfo($ch, CURLINFO_RESPONSE_CODE);
         $error = curl_error($ch);
 
-        curl_close($ch);
-
         if ($result === false) {
             throw new RuntimeException('Push request failed: ' . $error);
         }

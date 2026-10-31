@@ -99,7 +99,7 @@ class AfterInstall
             }
 
             $result[] = [
-                'id' => (string) rand(1, 1000000),
+                'id' => (string) random_int(1, 1000000),
                 'type' => 'url',
                 'text' => $item['label'] ?? $url,
                 'url' => $url,

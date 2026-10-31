@@ -212,9 +212,6 @@ class PwaIcon implements EntryPoint
         imagepng($canvas);
         $result = ob_get_clean();
 
-        imagedestroy($image);
-        imagedestroy($canvas);
-
         return $result !== false ? $result : null;
     }
 
@@ -272,13 +269,9 @@ class PwaIcon implements EntryPoint
             $charHeight
         );
 
-        imagedestroy($letterImage);
-
         ob_start();
         imagepng($canvas);
         $result = ob_get_clean();
-
-        imagedestroy($canvas);
 
         return $result !== false ? $result : null;
     }

@@ -19,7 +19,7 @@ Turns your EspoCRM instance into an installable mobile/desktop app with Web Push
 ## Requirements
 
 - EspoCRM ≥ 10.0 (built on the official extension template)
-- PHP ≥ 8.1 with `openssl` and `gd`
+- PHP 8.3 – 8.5 with `openssl`, `curl` and `gd`
 - HTTPS (required by browsers for service workers and push)
 - Running cron/daemon (for push notification delivery)
 
