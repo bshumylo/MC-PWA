@@ -11,17 +11,20 @@
         },
         "endpoint": {
             "type": "text",
-            "readOnly": true
+            "readOnly": true,
+            "onlyAdmin": true
         },
         "publicKey": {
             "type": "varchar",
             "maxLength": 255,
-            "readOnly": true
+            "readOnly": true,
+            "onlyAdmin": true
         },
         "authKey": {
             "type": "varchar",
             "maxLength": 100,
-            "readOnly": true
+            "readOnly": true,
+            "onlyAdmin": true
         },
         "platform": {
             "type": "varchar",
@@ -40,6 +43,20 @@
         "modifiedAt": {
             "type": "datetime",
             "readOnly": true
+        },
+        "endpointHash": {
+            "type": "varchar",
+            "maxLength": 64,
+            "readOnly": true,
+            "onlyAdmin": true,
+            "index": false,
+            "utility": true
+        },
+        "lastTestAt": {
+            "type": "datetime",
+            "readOnly": true,
+            "onlyAdmin": true,
+            "utility": true
         }
     },
     "links": {
@@ -51,5 +68,13 @@
     "collection": {
         "orderBy": "createdAt",
         "order": "desc"
+    },
+    "indexes": {
+        "endpointHash": {
+            "columns": [
+                "endpointHash"
+            ],
+            "unique": true
+        }
     }
 }

@@ -8,6 +8,8 @@ use Espo\Core\Api\Response;
 use Espo\Core\Api\ResponseComposer;
 use Espo\Core\Exceptions\Forbidden;
 use Espo\Core\Utils\Config;
+use Espo\Core\Utils\DateTime as DateTimeUtil;
+use Espo\Core\Utils\Log;
 use Espo\Core\Utils\Language;
 use Espo\Entities\User;
 use Espo\Modules\McPwa\Classes\Push\ExpiredSubscriptionException;
@@ -22,12 +24,17 @@ use Espo\ORM\EntityManager;
  */
 class PostTestPush implements Action
 {
+    private const MIN_INTERVAL_SECONDS = 30;
+    private const MAX_SENDS = 5;
+    private const DEADLINE_SECONDS = 20;
+
     public function __construct(
         private Config $config,
         private EntityManager $entityManager,
         private User $user,
         private WebPushSender $sender,
         private Language $language,
+        private Log $log,
     ) {}
 
     public function process(Request $request): Response
@@ -44,10 +51,26 @@ class PostTestPush implements Action
             throw new Forbidden('Not allowed for this user type.');
         }
 
-        $subscriptions = $this->entityManager
-            ->getRDBRepository('PwaSubscription')
-            ->where(['userId' => $this->user->getId()])
-            ->find();
+        $subscriptions = iterator_to_array(
+            $this->entityManager
+                ->getRDBRepository('PwaSubscription')
+                ->where(['userId' => $this->user->getId()])
+                ->limit(0, self::MAX_SENDS)
+                ->find(),
+            false
+        );
+
+        // Throttle: one test run per user per interval.
+        foreach ($subscriptions as $subscription) {
+            $last = $subscription->get('lastTestAt');
+
+            if ($last && strtotime($last . ' UTC') > time() - self::MIN_INTERVAL_SECONDS) {
+                throw new Forbidden('Please wait before sending another test push.');
+            }
+        }
+
+        $nowStr = gmdate(DateTimeUtil::SYSTEM_DATE_TIME_FORMAT);
+        $startedAt = time();
 
         $appName = $this->config->get('pwaAppName')
             ?: $this->config->get('applicationName')
@@ -63,11 +86,21 @@ class PostTestPush implements Action
         $results = [];
 
         foreach ($subscriptions as $subscription) {
+            $subscription->set('lastTestAt', $nowStr);
+            $this->entityManager->saveEntity($subscription, ['silent' => true]);
+
             $item = [
                 'id' => $subscription->getId(),
                 'platform' => $subscription->get('platform'),
                 'userAgent' => $subscription->get('userAgent'),
             ];
+
+            if (time() - $startedAt > self::DEADLINE_SECONDS) {
+                $item['status'] = 'error';
+                $results[] = $item;
+
+                continue;
+            }
 
             try {
                 $this->sender->send(
@@ -84,7 +117,10 @@ class PostTestPush implements Action
                 $item['status'] = 'expired';
             } catch (\Throwable $e) {
                 $item['status'] = 'error';
-                $item['message'] = $e->getMessage();
+
+                $this->log->warning(
+                    'McPwa: test push failed for subscription ' . $subscription->getId() . ': ' . $e->getMessage()
+                );
             }
 
             $results[] = $item;

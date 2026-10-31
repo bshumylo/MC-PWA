@@ -7,7 +7,9 @@ use Espo\Core\Job\JobDataLess;
 use Espo\Core\Utils\Config;
 use Espo\Core\Utils\Config\ConfigWriter;
 use Espo\Core\Utils\Language;
+use Espo\Core\AclManager;
 use Espo\Core\Utils\Log;
+use Espo\Entities\User;
 use Espo\Modules\McPwa\Classes\Push\ExpiredSubscriptionException;
 use Espo\Modules\McPwa\Classes\Push\WebPushSender;
 use Espo\ORM\EntityManager;
@@ -41,6 +43,7 @@ class SendReminderPush implements JobDataLess
         private Language $language,
         private Log $log,
         private InjectableFactory $injectableFactory,
+        private AclManager $aclManager,
     ) {}
 
     public function run(): void
@@ -84,6 +87,12 @@ class SendReminderPush implements JobDataLess
                 continue;
             }
 
+            $user = $this->entityManager->getEntityById('User', $userId);
+
+            if (!$user instanceof User || !$user->isActive() || $user->isPortal()) {
+                continue;
+            }
+
             if (!array_key_exists($userId, $subscriptionsByUser)) {
                 $subscriptionsByUser[$userId] = iterator_to_array(
                     $this->entityManager
@@ -99,10 +108,16 @@ class SendReminderPush implements JobDataLess
                 continue;
             }
 
-            $payload = json_encode(
-                $this->buildPayload($reminder, $userId),
-                JSON_UNESCAPED_UNICODE
-            );
+            try {
+                $payload = json_encode(
+                    $this->buildPayload($reminder, $user),
+                    JSON_UNESCAPED_UNICODE
+                );
+            } catch (\Throwable $e) {
+                $this->log->warning('McPwa: reminder payload failed: ' . $e->getMessage());
+
+                continue;
+            }
 
             if ($payload === false) {
                 continue;
@@ -138,7 +153,7 @@ class SendReminderPush implements JobDataLess
     /**
      * @return array{title: string, body: string, url: string, tag: string}
      */
-    private function buildPayload($reminder, string $userId): array
+    private function buildPayload($reminder, User $user): array
     {
         $entityType = (string) $reminder->get('entityType');
         $entityId = (string) $reminder->get('entityId');
@@ -149,9 +164,14 @@ class SendReminderPush implements JobDataLess
         $url = '';
 
         if ($entityType !== '' && $entityId !== '') {
-            $url = '#' . $entityType . '/view/' . $entityId;
-
             $entity = $this->entityManager->getEntityById($entityType, $entityId);
+
+            // The job runs as system: do not leak records the user cannot read.
+            if ($entity && !$this->aclManager->checkEntityRead($user, $entity)) {
+                $entity = null;
+            } elseif ($entity) {
+                $url = '#' . $entityType . '/view/' . $entityId;
+            }
 
             if ($entity) {
                 $name = $entity->hasAttribute('name')
@@ -170,7 +190,7 @@ class SendReminderPush implements JobDataLess
                     : null;
 
                 if (is_string($startAt) && $startAt !== '') {
-                    $formatted = $this->formatDateForUser($startAt, $userId);
+                    $formatted = $this->formatDateForUser($startAt, $user->getId());
 
                     if ($formatted !== '') {
                         $body = trim($body . ' — ' . $formatted, ' —');

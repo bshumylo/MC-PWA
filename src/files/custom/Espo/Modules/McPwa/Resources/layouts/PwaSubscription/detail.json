@@ -2,16 +2,26 @@
     {
         "rows": [
             [
-                {"name": "user"},
-                {"name": "platform"}
+                {
+                    "name": "user"
+                },
+                {
+                    "name": "platform"
+                }
             ],
             [
-                {"name": "endpoint"},
-                {"name": "userAgent"}
+                {
+                    "name": "userAgent"
+                },
+                false
             ],
             [
-                {"name": "createdAt"},
-                {"name": "modifiedAt"}
+                {
+                    "name": "createdAt"
+                },
+                {
+                    "name": "modifiedAt"
+                }
             ]
         ]
     }

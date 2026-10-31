@@ -5,6 +5,7 @@ namespace Espo\Modules\McPwa\Jobs;
 use Espo\Core\Job\Job;
 use Espo\Core\Job\Job\Data;
 use Espo\Core\Utils\Log;
+use Espo\Entities\User;
 use Espo\Modules\McPwa\Classes\Push\ExpiredSubscriptionException;
 use Espo\Modules\McPwa\Classes\Push\PayloadBuilder;
 use Espo\Modules\McPwa\Classes\Push\WebPushSender;
@@ -49,13 +50,19 @@ class SendPushNotification implements Job
             return;
         }
 
+        $user = $this->entityManager->getEntityById('User', $userId);
+
+        if (!$user instanceof User || !$user->isActive() || $user->isPortal()) {
+            return;
+        }
+
         $subscriptions = $this->entityManager
             ->getRDBRepository('PwaSubscription')
             ->where(['userId' => $userId])
             ->find();
 
         $payload = json_encode(
-            $this->payloadBuilder->build($notification),
+            $this->payloadBuilder->build($notification, $user),
             JSON_UNESCAPED_UNICODE
         );
 

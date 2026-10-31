@@ -7,10 +7,12 @@ use Espo\Core\Api\Request;
 use Espo\Core\Api\Response;
 use Espo\Core\Api\ResponseComposer;
 use Espo\Core\Exceptions\BadRequest;
+use Espo\Core\Exceptions\Conflict;
 use Espo\Core\Exceptions\Forbidden;
 use Espo\Core\Utils\Config;
 use Espo\Core\Utils\DateTime as DateTimeUtil;
 use Espo\Entities\User;
+use Espo\Modules\McPwa\Classes\Push\EndpointGuard;
 use Espo\ORM\EntityManager;
 
 /**
@@ -19,7 +21,7 @@ use Espo\ORM\EntityManager;
  */
 class PostSubscription implements Action
 {
-    private const MAX_SUBSCRIPTIONS_PER_USER = 20;
+    private const MAX_SUBSCRIPTIONS_PER_USER = 10;
     private const MAX_ENDPOINT_LENGTH = 2000;
 
     public function __construct(
@@ -56,6 +58,16 @@ class PostSubscription implements Action
             !str_starts_with($endpoint, 'https://')
         ) {
             throw new BadRequest('Invalid endpoint.');
+        }
+
+        $host = parse_url($endpoint, PHP_URL_HOST);
+        $extraHosts = $this->config->get('pwaPushExtraHosts');
+
+        if (
+            $action !== 'unsubscribe' &&
+            (!is_string($host) || !EndpointGuard::isHostAllowed($host, is_array($extraHosts) ? $extraHosts : []))
+        ) {
+            throw new BadRequest('Endpoint host is not a supported push service.');
         }
 
         if ($action === 'unsubscribe') {
@@ -96,20 +108,18 @@ class PostSubscription implements Action
             ->where(['endpoint' => $endpoint])
             ->findOne();
 
-        // An endpoint identifies a single browser/device. If a record for this
-        // endpoint already exists but belongs to a different user, the device
-        // is now used by the current account: drop the stale binding and
-        // create a fresh one. We never silently reassign another user's row.
+        // An endpoint identifies a single browser/device. A row that belongs to a
+        // different user is never taken over: the previous user has to unsubscribe
+        // (logout does this) before the device can be bound to another account.
         if ($existing && $existing->get('userId') !== $userId) {
-            $this->entityManager->removeEntity($existing);
-
-            $existing = null;
+            throw new Conflict('Endpoint is registered for another user.');
         }
 
         if ($existing) {
             $existing->set([
                 'publicKey' => $p256dh,
                 'authKey' => $auth,
+                'endpointHash' => hash('sha256', $endpoint),
                 'platform' => $platform,
                 'userAgent' => $userAgent,
                 'modifiedAt' => $now,
@@ -133,6 +143,7 @@ class PostSubscription implements Action
             'name' => trim(($this->user->getUserName() ?? '') . ' / ' . ($platform ?? 'unknown')),
             'userId' => $userId,
             'endpoint' => $endpoint,
+            'endpointHash' => hash('sha256', $endpoint),
             'publicKey' => $p256dh,
             'authKey' => $auth,
             'platform' => $platform,

@@ -38,7 +38,20 @@ self.addEventListener('notificationclick', function (event) {
 
     var scope = self.registration.scope;
     var url = (event.notification.data && event.notification.data.url) || '';
-    var targetUrl = url ? new URL(url, scope).href : scope;
+    var targetUrl = scope;
+
+    // Only open same-origin http(s) targets, whatever the push payload says.
+    try {
+        var resolved = new URL(url || '', scope);
+
+        if (resolved.origin === self.location.origin && /^https?:$/.test(resolved.protocol)) {
+            targetUrl = resolved.href;
+        } else {
+            url = '';
+        }
+    } catch (e) {
+        url = '';
+    }
 
     event.waitUntil(
         self.clients.matchAll({type: 'window', includeUncontrolled: true})

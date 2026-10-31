@@ -20,7 +20,24 @@
         return BASE + '?entryPoint=' + name;
     };
 
-    var LS = window.localStorage;
+    // Storage can throw (private mode, blocked site data): fall back to memory.
+    var LS = (function () {
+        try {
+            var storage = window.localStorage;
+
+            storage.getItem('mcPwaProbe');
+
+            return storage;
+        } catch (e) {
+            var memory = {};
+
+            return {
+                getItem: function (k) { return Object.prototype.hasOwnProperty.call(memory, k) ? memory[k] : null; },
+                setItem: function (k, v) { memory[k] = String(v); },
+                removeItem: function (k) { delete memory[k]; },
+            };
+        }
+    })();
 
     var config = null;
     var pushDone = false;
@@ -188,6 +205,45 @@
             .finally(function () {
                 subscribeInProgress = false;
             });
+    };
+
+    /**
+     * Removes this device's push subscription (browser and server) so that
+     * notifications of the logging-out user stop arriving on a shared device.
+     */
+    var unsubscribeOnLogout = function (registration) {
+        pushDone = false;
+
+        registration.pushManager.getSubscription()
+            .then(function (subscription) {
+                if (!subscription) {
+                    return;
+                }
+
+                var json = subscription.toJSON();
+
+                return postJson('McPwa/subscription', {action: 'unsubscribe', subscription: json})
+                    .catch(function () {})
+                    .then(function () {
+                        return subscription.unsubscribe();
+                    });
+            })
+            .catch(function () {});
+    };
+
+    var watchLogout = function (registration) {
+        // EspoCRM ends the session with POST App/destroyAuthToken.
+        var open = XMLHttpRequest.prototype.open;
+
+        XMLHttpRequest.prototype.open = function (method, url) {
+            try {
+                if (String(url).indexOf('App/destroyAuthToken') !== -1) {
+                    unsubscribeOnLogout(registration);
+                }
+            } catch (e) {}
+
+            return open.apply(this, arguments);
+        };
     };
 
     var requestPermissionOnGesture = function (registration) {
@@ -389,6 +445,7 @@
                     }
 
                     requestPermissionOnGesture(registration);
+                    watchLogout(registration);
 
                     // Retry the subscription periodically: the user may log in
                     // after page load, or permission may be granted later.

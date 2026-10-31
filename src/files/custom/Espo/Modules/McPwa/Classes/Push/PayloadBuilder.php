@@ -2,8 +2,10 @@
 
 namespace Espo\Modules\McPwa\Classes\Push;
 
+use Espo\Core\AclManager;
 use Espo\Core\Utils\Config;
 use Espo\Core\Utils\Language;
+use Espo\Entities\User;
 use Espo\ORM\Entity;
 use Espo\ORM\EntityManager;
 
@@ -14,17 +16,26 @@ class PayloadBuilder
 {
     private const BODY_MAX_LENGTH = 160;
 
+    private ?User $recipient = null;
+
     public function __construct(
         private Config $config,
         private EntityManager $entityManager,
         private Language $language,
+        private AclManager $aclManager,
     ) {}
 
     /**
+     * The payload is built with system rights, so every record whose text goes into it
+     * is checked against the recipient's read access first. Without access the
+     * notification falls back to a generic text.
+     *
      * @return array{title: string, body: string, url: string, tag: string}
      */
-    public function build(Entity $notification): array
+    public function build(Entity $notification, ?User $recipient = null): array
     {
+        $this->recipient = $recipient;
+
         $type = (string) $notification->get('type');
 
         $data = $notification->get('data');
@@ -99,6 +110,10 @@ class PayloadBuilder
         $url = '';
 
         if ($entityType && isset($data->entityId) && is_string($data->entityId)) {
+            if (!$this->loadReadable($entityType, $data->entityId)) {
+                return [$title, '', ''];
+            }
+
             $url = '#' . $entityType . '/view/' . $data->entityId;
         }
 
@@ -119,13 +134,15 @@ class PayloadBuilder
         $relatedType = $notification->get('relatedType');
 
         if ($relatedType === 'Email' && $relatedId) {
-            $email = $this->entityManager->getEntityById('Email', $relatedId);
+            $email = $this->loadReadable('Email', $relatedId);
 
             if ($email) {
                 $body = (string) ($email->get('name') ?? '');
             }
 
-            $url = '#Email/view/' . $relatedId;
+            if ($email) {
+                $url = '#Email/view/' . $relatedId;
+            }
         }
 
         if (isset($data->personEntityName) && is_string($data->personEntityName)) {
@@ -149,7 +166,7 @@ class PayloadBuilder
         $relatedType = $notification->get('relatedType');
 
         if ($relatedType === 'Note' && $relatedId) {
-            $note = $this->entityManager->getEntityById('Note', $relatedId);
+            $note = $this->loadReadable('Note', $relatedId);
 
             if ($note) {
                 $body = (string) ($note->get('post') ?? '');
@@ -158,9 +175,11 @@ class PayloadBuilder
                 $parentId = $note->get('parentId');
 
                 if ($parentType && $parentId) {
-                    $url = '#' . $parentType . '/view/' . $parentId;
+                    $parent = $this->loadReadable($parentType, $parentId);
 
-                    $parent = $this->entityManager->getEntityById($parentType, $parentId);
+                    if ($parent) {
+                        $url = '#' . $parentType . '/view/' . $parentId;
+                    }
 
                     if ($parent && $parent->hasAttribute('name')) {
                         $title .= ': ' . $parent->get('name');
@@ -186,7 +205,7 @@ class PayloadBuilder
         $relatedType = $notification->get('relatedType');
 
         if ($relatedType === 'Note' && $relatedId) {
-            $note = $this->entityManager->getEntityById('Note', $relatedId);
+            $note = $this->loadReadable('Note', $relatedId);
 
             if ($note) {
                 $body = (string) ($note->get('post') ?? '');
@@ -194,13 +213,35 @@ class PayloadBuilder
                 $parentType = $note->get('parentType');
                 $parentId = $note->get('parentId');
 
-                if ($parentType && $parentId) {
+                if ($parentType && $parentId && $this->loadReadable($parentType, $parentId)) {
                     $url = '#' . $parentType . '/view/' . $parentId;
                 }
             }
         }
 
         return [$title, strip_tags($body), $url];
+    }
+
+    /**
+     * Loads a record only when the recipient is allowed to read it.
+     */
+    private function loadReadable(string $entityType, string $id): ?Entity
+    {
+        if (!$this->recipient || !$this->recipient->isActive()) {
+            return null;
+        }
+
+        try {
+            $entity = $this->entityManager->getEntityById($entityType, $id);
+        } catch (\Throwable) {
+            return null;
+        }
+
+        if (!$entity || !$this->aclManager->checkEntityRead($this->recipient, $entity)) {
+            return null;
+        }
+
+        return $entity;
     }
 
     private function translate(string $key): string
