@@ -76,6 +76,18 @@
             "maxLength": 255,
             "readOnly": true,
             "tooltip": true
+        },
+        "pwaSubscriptionMaxFailures": {
+            "type": "int",
+            "min": 0,
+            "max": 1000,
+            "tooltip": true
+        },
+        "pwaInstallationRetentionDays": {
+            "type": "int",
+            "min": 0,
+            "max": 3650,
+            "tooltip": true
         }
     }
 }

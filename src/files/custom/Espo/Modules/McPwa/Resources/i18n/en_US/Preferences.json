@@ -1,0 +1,19 @@
+{
+    "fields": {
+        "pwaPushTypes": "Push Notification Types",
+        "pwaQuietHoursEnabled": "Quiet Hours",
+        "pwaQuietHoursStart": "From",
+        "pwaQuietHoursEnd": "To"
+    },
+    "options": {
+        "pwaPushTypes": {
+            "Assign": "Assignment",
+            "EmailReceived": "Email Received",
+            "Message": "Message",
+            "Note": "Stream Post",
+            "MentionInPost": "Mention",
+            "System": "System",
+            "Reminder": "Reminder"
+        }
+    }
+}

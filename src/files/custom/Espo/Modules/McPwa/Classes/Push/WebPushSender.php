@@ -184,10 +184,13 @@ class WebPushSender
 
         $userKeyPem = self::rawP256PublicToPem($userPublicKey);
 
-        $sharedSecret = openssl_pkey_derive(
-            openssl_pkey_get_public($userKeyPem),
-            $ephemeralKey
-        );
+        $userKey = openssl_pkey_get_public($userKeyPem);
+
+        if ($userKey === false) {
+            throw new RuntimeException('Invalid subscription public key.');
+        }
+
+        $sharedSecret = openssl_pkey_derive($userKey, $ephemeralKey);
 
         if ($sharedSecret === false) {
             throw new RuntimeException('ECDH derivation failed.');
@@ -225,7 +228,7 @@ class WebPushSender
         // aes128gcm header: salt(16) | rs(4) | idlen(1) | keyid(65) | records.
         return $salt .
             pack('N', self::RECORD_SIZE) .
-            chr(strlen($ephemeralPublic)) .
+            pack('C', strlen($ephemeralPublic)) .
             $ephemeralPublic .
             $cipherText . $tag;
     }
@@ -276,6 +279,9 @@ class WebPushSender
         return 'vapid t=' . $jwt . ', k=' . $publicKeyB64;
     }
 
+    /**
+     * @param string[] $headers
+     */
     private function post(string $endpoint, string $host, string $ip, array $headers, string $body): void
     {
         $ch = curl_init($endpoint);
@@ -304,7 +310,8 @@ class WebPushSender
             CURLOPT_PROTOCOLS => CURLPROTO_HTTPS,
             // Pin the pre-validated public IP so curl cannot be redirected to
             // a private address by a DNS answer that changed after the check.
-            CURLOPT_RESOLVE => [$host . ':443:' . $ip],
+            // IPv6 addresses must be bracketed, otherwise curl ignores the entry and resolves the host again.
+            CURLOPT_RESOLVE => [$host . ':443:' . (str_contains($ip, ':') ? '[' . $ip . ']' : $ip)],
         ]);
 
         $result = curl_exec($ch);
@@ -313,8 +320,6 @@ class WebPushSender
 
         $statusCode = (int) curl_getinfo($ch, CURLINFO_RESPONSE_CODE);
         $error = curl_error($ch);
-
-        curl_close($ch);
 
         if ($result === false) {
             throw new RuntimeException('Push request failed: ' . $error);

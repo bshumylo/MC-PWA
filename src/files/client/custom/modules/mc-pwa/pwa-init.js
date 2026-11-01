@@ -161,6 +161,26 @@
         return navigator.platform || 'unknown';
     };
 
+    var sameKey = function (buffer, bytes) {
+        if (!buffer) {
+            return false;
+        }
+
+        var current = new Uint8Array(buffer);
+
+        if (current.length !== bytes.length) {
+            return false;
+        }
+
+        for (var i = 0; i < current.length; i++) {
+            if (current[i] !== bytes[i]) {
+                return false;
+            }
+        }
+
+        return true;
+    };
+
     var subscribeToPush = function (registration) {
         if (pushDone || subscribeInProgress) {
             return;
@@ -180,10 +200,21 @@
 
         subscribeInProgress = true;
 
-        registration.pushManager
-            .subscribe({
-                userVisibleOnly: true,
-                applicationServerKey: urlBase64ToUint8Array(config.vapidPublicKey),
+        var serverKey = urlBase64ToUint8Array(config.vapidPublicKey);
+
+        // A subscription made with another (rotated) VAPID key must be replaced,
+        // otherwise the browser refuses to subscribe again.
+        registration.pushManager.getSubscription()
+            .then(function (existing) {
+                if (existing && !sameKey(existing.options && existing.options.applicationServerKey, serverKey)) {
+                    return existing.unsubscribe();
+                }
+            })
+            .then(function () {
+                return registration.pushManager.subscribe({
+                    userVisibleOnly: true,
+                    applicationServerKey: serverKey,
+                });
             })
             .then(function (subscription) {
                 return postJson('McPwa/subscription', {

@@ -10,8 +10,10 @@ use Espo\Core\Utils\Language;
 use Espo\Core\AclManager;
 use Espo\Core\Utils\Log;
 use Espo\Entities\User;
-use Espo\Modules\McPwa\Classes\Push\ExpiredSubscriptionException;
-use Espo\Modules\McPwa\Classes\Push\WebPushSender;
+use Espo\Modules\McPwa\Classes\Push\Dispatcher;
+use Espo\Modules\McPwa\Classes\Push\UserPreferences;
+use Espo\Modules\McPwa\Classes\Text;
+use Espo\ORM\Entity;
 use Espo\ORM\EntityManager;
 
 /**
@@ -39,7 +41,8 @@ class SendReminderPush implements JobDataLess
     public function __construct(
         private Config $config,
         private EntityManager $entityManager,
-        private WebPushSender $sender,
+        private Dispatcher $dispatcher,
+        private UserPreferences $userPreferences,
         private Language $language,
         private Log $log,
         private InjectableFactory $injectableFactory,
@@ -93,6 +96,10 @@ class SendReminderPush implements JobDataLess
                 continue;
             }
 
+            if (!$this->userPreferences->isAllowed($user, 'Reminder')) {
+                continue;
+            }
+
             if (!array_key_exists($userId, $subscriptionsByUser)) {
                 $subscriptionsByUser[$userId] = iterator_to_array(
                     $this->entityManager
@@ -124,21 +131,7 @@ class SendReminderPush implements JobDataLess
             }
 
             foreach ($subscriptions as $subscription) {
-                try {
-                    $this->sender->send(
-                        (string) $subscription->get('endpoint'),
-                        (string) $subscription->get('publicKey'),
-                        (string) $subscription->get('authKey'),
-                        $payload
-                    );
-                } catch (ExpiredSubscriptionException) {
-                    $this->entityManager->removeEntity($subscription);
-                } catch (\Throwable $e) {
-                    $this->log->warning(
-                        'McPwa: reminder push failed for subscription ' .
-                        $subscription->getId() . ': ' . $e->getMessage()
-                    );
-                }
+                $this->dispatcher->deliver($subscription, $payload);
             }
         }
 
@@ -153,12 +146,12 @@ class SendReminderPush implements JobDataLess
     /**
      * @return array{title: string, body: string, url: string, tag: string}
      */
-    private function buildPayload($reminder, User $user): array
+    private function buildPayload(Entity $reminder, User $user): array
     {
         $entityType = (string) $reminder->get('entityType');
         $entityId = (string) $reminder->get('entityId');
 
-        $title = $this->language->translate('reminder', 'mcPwaPush');
+        $title = Text::translate($this->language, 'reminder', 'mcPwaPush');
 
         $body = '';
         $url = '';
@@ -178,9 +171,9 @@ class SendReminderPush implements JobDataLess
                     ? trim((string) $entity->get('name'))
                     : '';
 
-                $scopeLabel = $this->language->translate($entityType, 'scopeNames');
+                $scopeLabel = Text::translate($this->language, $entityType, 'scopeNames');
 
-                $title = $this->language->translate('reminder', 'mcPwaPush') .
+                $title = Text::translate($this->language, 'reminder', 'mcPwaPush') .
                     ': ' . $scopeLabel;
 
                 $body = $name;
@@ -200,7 +193,7 @@ class SendReminderPush implements JobDataLess
         }
 
         if (trim($body) === '') {
-            $body = $this->language->translate('reminder', 'mcPwaPush');
+            $body = Text::translate($this->language, 'reminder', 'mcPwaPush');
         }
 
         return [

@@ -5,6 +5,7 @@ namespace Espo\Modules\McPwa\Classes\Push;
 use Espo\Core\AclManager;
 use Espo\Core\Utils\Config;
 use Espo\Core\Utils\Language;
+use Espo\Modules\McPwa\Classes\Text;
 use Espo\Entities\User;
 use Espo\ORM\Entity;
 use Espo\ORM\EntityManager;
@@ -96,7 +97,7 @@ class PayloadBuilder
             : '';
 
         $scopeLabel = $entityType
-            ? $this->language->translate($entityType, 'scopeNames')
+            ? Text::translate($this->language, $entityType, 'scopeNames')
             : '';
 
         $title = $this->translate('assignedToYou');
@@ -246,6 +247,6 @@ class PayloadBuilder
 
     private function translate(string $key): string
     {
-        return $this->language->translate($key, 'mcPwaPush');
+        return Text::translate($this->language, $key, 'mcPwaPush');
     }
 }

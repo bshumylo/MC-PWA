@@ -1,7 +1,8 @@
 {
     "options": {
         "job": {
-            "McPwaSendReminderPush": "MC PWA: Reminder Push"
+            "McPwaSendReminderPush": "MC PWA: Reminder Push",
+            "McPwaCleanup": "MC PWA: Cleanup"
         }
     }
 }

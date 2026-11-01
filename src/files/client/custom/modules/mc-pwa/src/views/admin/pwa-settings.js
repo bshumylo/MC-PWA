@@ -51,7 +51,7 @@ define(['views/settings/record/edit'], (Dep) => {
                 rows: [
                     [
                         {name: 'pwaStatsEnabled'},
-                        false,
+                        {name: 'pwaInstallationRetentionDays'},
                     ],
                 ],
             },
@@ -60,7 +60,7 @@ define(['views/settings/record/edit'], (Dep) => {
                 rows: [
                     [
                         {name: 'pwaSubscriptionsEnabled'},
-                        false,
+                        {name: 'pwaSubscriptionMaxFailures'},
                     ],
                 ],
             },
@@ -73,6 +73,50 @@ define(['views/settings/record/edit'], (Dep) => {
                 name: 'testPush',
                 label: this.translate('Send Test Push', 'labels'),
                 style: 'default',
+            });
+
+            this.addButton({
+                name: 'diagnostics',
+                label: this.translate('Diagnostics', 'labels'),
+                style: 'default',
+            });
+
+            this.addButton({
+                name: 'rotateVapid',
+                label: this.translate('Rotate VAPID Keys', 'labels'),
+                style: 'danger',
+            });
+        }
+
+        actionDiagnostics() {
+            this.disableButtons();
+
+            Espo.Ajax.getRequest('McPwa/status')
+                .then(data => {
+                    this.enableButtons();
+
+                    return this.createView('diagnostics', 'mc-pwa:views/modals/diagnostics', {data: data});
+                })
+                .then(view => view.render())
+                .catch(() => this.enableButtons());
+        }
+
+        actionRotateVapid() {
+            this.confirm(this.translate('rotateVapidConfirm', 'labels'), () => {
+                this.disableButtons();
+
+                Espo.Ajax.postRequest('McPwa/rotateVapid', {confirm: true})
+                    .then(response => {
+                        this.enableButtons();
+
+                        this.model.set('pwaVapidPublicKey', response.vapidPublicKey);
+
+                        Espo.Ui.success(
+                            this.translate('rotateVapidDone', 'labels')
+                                .replace('{count}', response.removedSubscriptions)
+                        );
+                    })
+                    .catch(() => this.enableButtons());
             });
         }
 

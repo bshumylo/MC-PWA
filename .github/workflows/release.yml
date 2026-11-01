@@ -7,6 +7,8 @@ on:
     branches: [main]
     paths:
       - extension.json
+    # Pushing a version tag (for example 1.3.0) builds the release for that tag.
+    tags: ['[0-9]+.[0-9]+.[0-9]+']
   workflow_dispatch:
 
 permissions:
@@ -20,7 +22,7 @@ jobs:
   release:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Read version
         id: version
@@ -33,6 +35,10 @@ jobs:
           package_version=$(node -p "require('./package.json').version")
           if [ "$version" != "$package_version" ]; then
             echo "::error::extension.json ($version) and package.json ($package_version) versions differ"
+            exit 1
+          fi
+          if [ "${GITHUB_REF_TYPE}" = "tag" ] && [ "${GITHUB_REF_NAME}" != "$version" ]; then
+            echo "::error::Tag ${GITHUB_REF_NAME} does not match the extension.json version $version"
             exit 1
           fi
           echo "version=$version" >> "$GITHUB_OUTPUT"
@@ -49,7 +55,7 @@ jobs:
             echo "exists=false" >> "$GITHUB_OUTPUT"
           fi
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         if: steps.exists.outputs.exists == 'false'
         with:
           node-version: 20

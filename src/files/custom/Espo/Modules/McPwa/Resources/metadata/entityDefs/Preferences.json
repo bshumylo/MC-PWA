@@ -1,0 +1,35 @@
+{
+    "fields": {
+        "pwaPushTypes": {
+            "type": "multiEnum",
+            "options": [
+                "Assign",
+                "EmailReceived",
+                "Message",
+                "Note",
+                "MentionInPost",
+                "System",
+                "Reminder"
+            ],
+            "utility": true
+        },
+        "pwaQuietHoursEnabled": {
+            "type": "bool",
+            "utility": true
+        },
+        "pwaQuietHoursStart": {
+            "type": "varchar",
+            "maxLength": 5,
+            "default": "22:00",
+            "pattern": "([01][0-9]|2[0-3]):[0-5][0-9]",
+            "utility": true
+        },
+        "pwaQuietHoursEnd": {
+            "type": "varchar",
+            "maxLength": 5,
+            "default": "07:00",
+            "pattern": "([01][0-9]|2[0-3]):[0-5][0-9]",
+            "utility": true
+        }
+    }
+}

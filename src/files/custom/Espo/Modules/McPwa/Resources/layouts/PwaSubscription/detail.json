@@ -22,6 +22,22 @@
                 {
                     "name": "modifiedAt"
                 }
+            ],
+            [
+                {
+                    "name": "lastSuccessAt"
+                },
+                {
+                    "name": "failureCount"
+                }
+            ],
+            [
+                {
+                    "name": "lastErrorAt"
+                },
+                {
+                    "name": "lastError"
+                }
             ]
         ]
     }

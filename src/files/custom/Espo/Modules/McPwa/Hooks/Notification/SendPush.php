@@ -2,17 +2,22 @@
 
 namespace Espo\Modules\McPwa\Hooks\Notification;
 
+use Espo\Core\Hook\Hook\AfterSave;
 use Espo\Core\Job\JobSchedulerFactory;
 use Espo\Core\Job\QueueName;
 use Espo\Core\Utils\Config;
 use Espo\Modules\McPwa\Jobs\SendPushNotification;
 use Espo\ORM\Entity;
 use Espo\ORM\EntityManager;
+use Espo\ORM\Repository\Option\SaveOptions;
 
 /**
  * Schedules a Web Push delivery job when an in-app notification is created.
  */
-class SendPush
+/**
+ * @implements AfterSave<Entity>
+ */
+class SendPush implements AfterSave
 {
     public static int $order = 20;
 
@@ -22,10 +27,7 @@ class SendPush
         private JobSchedulerFactory $jobSchedulerFactory,
     ) {}
 
-    /**
-     * @param array<string, mixed> $options
-     */
-    public function afterSave(Entity $entity, array $options): void
+    public function afterSave(Entity $entity, SaveOptions $options): void
     {
         if (!$entity->isNew()) {
             return;

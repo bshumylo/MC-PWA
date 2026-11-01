@@ -12,6 +12,7 @@ use Espo\Core\Utils\Config;
 use Espo\Core\Utils\Language;
 use Espo\Core\Utils\Metadata;
 use Espo\Entities\User;
+use Espo\Modules\McPwa\Classes\Text;
 use Throwable;
 
 /**
@@ -141,7 +142,7 @@ class GetBottomBar implements Action
 
         return $this->composeItem(
             '#' . $scope,
-            $this->language->translate($scope, 'scopeNamesPlural'),
+            Text::translate($this->language, $scope, 'scopeNamesPlural'),
             $this->metadata->get(['clientDefs', $scope, 'iconClass']) ?? self::DEFAULT_ICON,
             $this->metadata->get(['clientDefs', $scope, 'color']),
             false

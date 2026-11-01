@@ -8,6 +8,7 @@ use Espo\Core\EntryPoint\EntryPoint;
 use Espo\Core\EntryPoint\Traits\NoAuth;
 use Espo\Core\Utils\Config;
 use Espo\Core\Utils\Language;
+use Espo\Modules\McPwa\Classes\Text;
 
 /**
  * Serves the Web App Manifest built from admin settings.
@@ -80,7 +81,7 @@ class PwaManifest implements EntryPoint
             ->setHeader('Cache-Control', 'no-cache');
 
         $response->writeBody(
-            json_encode($manifest, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)
+            json_encode($manifest, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR)
         );
     }
 
@@ -102,8 +103,8 @@ class PwaManifest implements EntryPoint
                 continue;
             }
 
-            $label = $this->language->translate($scope, 'scopeNames');
-            $createLabel = $this->language->translate('Create', 'labels');
+            $label = Text::translate($this->language, $scope, 'scopeNames');
+            $createLabel = Text::translate($this->language, 'Create', 'labels');
 
             $shortcuts[] = [
                 'name' => $label,

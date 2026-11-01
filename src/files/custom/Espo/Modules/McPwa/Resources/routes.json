@@ -18,5 +18,15 @@
         "route": "/McPwa/bottomBar",
         "method": "get",
         "actionClassName": "Espo\\Modules\\McPwa\\Api\\GetBottomBar"
+    },
+    {
+        "route": "/McPwa/status",
+        "method": "get",
+        "actionClassName": "Espo\\Modules\\McPwa\\Api\\GetStatus"
+    },
+    {
+        "route": "/McPwa/rotateVapid",
+        "method": "post",
+        "actionClassName": "Espo\\Modules\\McPwa\\Api\\PostRotateVapid"
     }
 ]

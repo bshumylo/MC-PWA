@@ -1,7 +1,8 @@
 {
     "options": {
         "job": {
-            "McPwaSendReminderPush": "MC PWA: Push-нагадування"
+            "McPwaSendReminderPush": "MC PWA: Push-нагадування",
+            "McPwaCleanup": "MC PWA: Очищення"
         }
     }
 }

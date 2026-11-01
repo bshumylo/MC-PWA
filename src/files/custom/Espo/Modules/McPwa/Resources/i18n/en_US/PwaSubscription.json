@@ -8,6 +8,10 @@
         "platform": "Platform",
         "userAgent": "User Agent",
         "createdAt": "Created At",
-        "modifiedAt": "Modified At"
+        "modifiedAt": "Modified At",
+        "lastSuccessAt": "Last Delivered At",
+        "lastErrorAt": "Last Error At",
+        "lastError": "Last Error",
+        "failureCount": "Failures in a Row"
     }
 }

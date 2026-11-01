@@ -1,0 +1,98 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: PHP ${{ matrix.php }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        php: ['8.3', '8.4', '8.5']
+
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Checkout EspoCRM (stable)
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: espocrm/espocrm
+          ref: stable
+          path: site
+          fetch-depth: 1
+          persist-credentials: false
+          sparse-checkout: |
+            application/
+            custom/
+            dev/
+            bootstrap.php
+            composer.json
+            composer.lock
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962 # 2.40.0
+        with:
+          php-version: ${{ matrix.php }}
+          tools: composer:v2
+          extensions: gd, curl, openssl, mbstring, intl, zip, pdo_mysql
+          ini-values: memory_limit=1024M, error_reporting=-1, display_errors=1
+
+      - name: Cache EspoCRM vendor
+        id: cache-site-vendor
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: site/vendor
+          key: ${{ runner.os }}-php${{ matrix.php }}-site-vendor-${{ hashFiles('site/composer.lock') }}
+
+      - name: Install EspoCRM dependencies
+        if: steps.cache-site-vendor.outputs.cache-hit != 'true'
+        run: composer install --no-interaction --no-progress
+        working-directory: site
+
+      - name: Install dependencies
+        run: composer install --no-interaction --no-progress
+
+      - name: Lint PHP (deprecations are errors)
+        run: |
+          find src tests php_scripts -name '*.php' -print0 | xargs -0 -n1 php -d error_reporting=-1 -l
+
+      - name: Static analysis
+        run: vendor/bin/phpstan analyse --no-progress
+
+      - name: Unit tests
+        run: vendor/bin/phpunit
+
+  package:
+    name: Build package
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Build
+        run: |
+          npm ci --ignore-scripts
+          node build --extension
+          version=$(node -p "require('./extension.json').version")
+          test -f "build/mc-pwa-$version.zip"
+          unzip -l "build/mc-pwa-$version.zip" | tail -n 3

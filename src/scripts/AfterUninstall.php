@@ -16,18 +16,19 @@ class AfterUninstall
         'pwaPushExtraHosts', 'pwaStatsEnabled', 'pwaSubscriptionsEnabled',
         'pwaBottomBarEnabled', 'pwaBottomBarShowLabels', 'pwaBottomBarItems',
         'pwaVapidPublicKey', 'pwaVapidPrivateKey', 'pwaReminderPushCheckedAt',
+        'pwaSubscriptionMaxFailures', 'pwaInstallationRetentionDays',
     ];
 
     public function run(Container $container)
     {
         $entityManager = $container->getByClass(EntityManager::class);
 
-        $scheduledJob = $entityManager
+        $scheduledJobs = $entityManager
             ->getRDBRepository('ScheduledJob')
-            ->where(['job' => 'McPwaSendReminderPush'])
-            ->findOne();
+            ->where(['job' => ['McPwaSendReminderPush', 'McPwaCleanup']])
+            ->find();
 
-        if ($scheduledJob) {
+        foreach ($scheduledJobs as $scheduledJob) {
             $entityManager->removeEntity($scheduledJob);
         }
 
