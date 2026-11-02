@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.3.1
+
+### Fixed
+- *Rotate VAPID Keys* in the admin UI failed with "Missing required header" (403): the request now sends `X-Requested-With`.
+
 ## 1.3.0
 
 ### Compatibility

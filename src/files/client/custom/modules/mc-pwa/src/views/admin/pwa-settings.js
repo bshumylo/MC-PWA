@@ -105,7 +105,9 @@ define(['views/settings/record/edit'], (Dep) => {
             this.confirm(this.translate('rotateVapidConfirm', 'labels'), () => {
                 this.disableButtons();
 
-                Espo.Ajax.postRequest('McPwa/rotateVapid', {confirm: true})
+                Espo.Ajax.postRequest('McPwa/rotateVapid', {confirm: true}, {
+                    headers: {'X-Requested-With': 'XMLHttpRequest'},
+                })
                     .then(response => {
                         this.enableButtons();
 
