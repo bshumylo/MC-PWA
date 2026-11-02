@@ -18,7 +18,7 @@
   "type": "module",
   "author": "Bogdan Shumylo",
   "dependencies": {
-    "espo-extension-tools": "github:espocrm/extension-tools#0.4.5",
+    "espo-extension-tools": "github:espocrm/extension-tools#0.4.6",
     "fs-extra": "^11.4.1"
   },
   "engines": {
