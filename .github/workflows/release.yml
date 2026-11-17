@@ -15,11 +15,13 @@ name: Release
 #   - Actions -> Release -> Run workflow (builds the version on main).
 #
 # How the ZIP is built:
-#   - with package.json (ext-template): npm ci, then `node build --extension`,
-#     the ZIP is build/<name>-<version>.zip;
+#   - the ZIP name is the repository name in lower case plus the version,
+#     for example MC-Team-Board -> mc-team-board-2.1.2.zip;
+#   - with package.json (ext-template): npm ci, then `node build --extension`;
+#     extension.json must have "packageName" (for example "McTeamBoard") so
+#     the template builds build/<name>-<version>.zip;
 #   - without package.json: manifest.json, files/ and scripts/ (when present),
-#     LICENSE and README.md are zipped as <name>-<version>.zip, where <name>
-#     is the repository name in lower case without the "MC-" prefix.
+#     LICENSE and README.md are zipped.
 
 on:
   push:
@@ -99,23 +101,22 @@ jobs:
           VERSION: ${{ steps.version.outputs.version }}
         run: |
           set -euo pipefail
+          # The ZIP is always named after the repository: MC-Team-Board -> mc-team-board-<version>.zip
+          name="${GITHUB_REPOSITORY#*/}"
+          name="${name,,}"
           if [ -f package.json ]; then
             # Lockfiles may pin the EspoCRM build tools as git+ssh URLs; the runner has no SSH key.
             git config --global url."https://github.com/".insteadOf "ssh://git@github.com/"
             git config --global --add url."https://github.com/".insteadOf "git@github.com:"
             npm ci --ignore-scripts
             node build --extension
-            shopt -s nullglob
-            zips=(build/*-"$VERSION".zip)
-            if [ "${#zips[@]}" -ne 1 ]; then
-              echo "::error::Expected one build/*-$VERSION.zip, found ${#zips[@]}"
+            zip_path="build/$name-$VERSION.zip"
+            if [ ! -f "$zip_path" ]; then
+              echo "::error::$zip_path was not built. Set \"packageName\" in extension.json so the ZIP is named after the repository."
+              ls build/*.zip >&2 || true
               exit 1
             fi
-            zip_path="${zips[0]}"
           else
-            name="${GITHUB_REPOSITORY#*/}"
-            name="${name,,}"
-            name="${name#mc-}"
             zip_path="$name-$VERSION.zip"
             parts=(manifest.json files)
             for extra in scripts LICENSE README.md; do
