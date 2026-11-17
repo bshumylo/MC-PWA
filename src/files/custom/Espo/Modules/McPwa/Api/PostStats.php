@@ -25,7 +25,7 @@ class PostStats implements Action
      * an endless stream of fresh anonymousId values. Existing rows are still
      * updated once the cap is reached; only new rows are refused.
      */
-    private const MAX_INSTALLATIONS = 100000;
+    private const MAX_INSTALLATIONS = 5000;
 
     public function __construct(
         private Config $config,

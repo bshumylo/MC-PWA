@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.3.2
+
+### Security
+- Push endpoint URLs are validated more strictly: only a plain `https://host[:443]/path` form is accepted, and the connection is pinned to the validated address with a second, independent curl option.
+- Shared devices: when a browser subscription is still bound to another account, the client replaces it with a new one for the current user.
+- The test push limit also applies to a subscription that has just been created.
+- Lower cap on stored anonymous installation records (5000).
+- The internal settings `pwaPushExtraHosts` and `pwaReminderPushCheckedAt` are declared as administrator-level.
+
 ## 1.3.1
 
 ### Fixed

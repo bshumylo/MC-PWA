@@ -202,6 +202,44 @@
 
         var serverKey = urlBase64ToUint8Array(config.vapidPublicKey);
 
+        var subscribeAndSave = function (mayReplace) {
+            return registration.pushManager
+                .subscribe({
+                    userVisibleOnly: true,
+                    applicationServerKey: serverKey,
+                })
+                .then(function (subscription) {
+                    return postJson('McPwa/subscription', {
+                        action: 'subscribe',
+                        subscription: subscription.toJSON(),
+                        platform: getPlatform(),
+                        userAgent: navigator.userAgent.substring(0, 250),
+                    });
+                })
+                .then(function (response) {
+                    if (response && response.ok) {
+                        pushDone = true;
+                        LS.setItem('mcPwaSubscribedAt', String(Date.now()));
+
+                        return;
+                    }
+
+                    // 409: the browser's subscription still belongs to the previous user of this
+                    // device (their session ended without a logout). Drop it, so the device stops
+                    // showing their notifications, and subscribe once more for the current user.
+                    // Only one immediate retry; after that the 20-second timer takes over.
+                    if (mayReplace && response && response.status === 409) {
+                        return registration.pushManager.getSubscription()
+                            .then(function (old) {
+                                return old ? old.unsubscribe() : null;
+                            })
+                            .then(function () {
+                                return subscribeAndSave(false);
+                            });
+                    }
+                });
+        };
+
         // A subscription made with another (rotated) VAPID key must be replaced,
         // otherwise the browser refuses to subscribe again.
         registration.pushManager.getSubscription()
@@ -211,24 +249,7 @@
                 }
             })
             .then(function () {
-                return registration.pushManager.subscribe({
-                    userVisibleOnly: true,
-                    applicationServerKey: serverKey,
-                });
-            })
-            .then(function (subscription) {
-                return postJson('McPwa/subscription', {
-                    action: 'subscribe',
-                    subscription: subscription.toJSON(),
-                    platform: getPlatform(),
-                    userAgent: navigator.userAgent.substring(0, 250),
-                });
-            })
-            .then(function (response) {
-                if (response && response.ok) {
-                    pushDone = true;
-                    LS.setItem('mcPwaSubscribedAt', String(Date.now()));
-                }
+                return subscribeAndSave(true);
             })
             .catch(function (e) {
                 console.warn('MC PWA: push subscription failed', e);

@@ -55,17 +55,18 @@ class PostSubscription implements Action
         if (
             !is_string($endpoint) ||
             strlen($endpoint) > self::MAX_ENDPOINT_LENGTH ||
-            !str_starts_with($endpoint, 'https://')
+            !EndpointGuard::isWellFormed($endpoint)
         ) {
             throw new BadRequest('Invalid endpoint.');
         }
 
-        $host = parse_url($endpoint, PHP_URL_HOST);
+        // The host comes from the strict shape check, not from a second URL parser.
+        $host = EndpointGuard::parseHost($endpoint);
         $extraHosts = $this->config->get('pwaPushExtraHosts');
 
         if (
             $action !== 'unsubscribe' &&
-            (!is_string($host) || !EndpointGuard::isHostAllowed($host, is_array($extraHosts) ? $extraHosts : []))
+            ($host === null || !EndpointGuard::isHostAllowed($host, is_array($extraHosts) ? $extraHosts : []))
         ) {
             throw new BadRequest('Endpoint host is not a supported push service.');
         }
@@ -99,7 +100,8 @@ class PostSubscription implements Action
         $platform = $this->sanitize($body->platform ?? null, 60);
         $userAgent = $this->sanitize($body->userAgent ?? null, 255);
 
-        $now = date(DateTimeUtil::SYSTEM_DATE_TIME_FORMAT);
+        // UTC, the same as every other date-time written by this module.
+        $now = gmdate(DateTimeUtil::SYSTEM_DATE_TIME_FORMAT);
 
         $userId = $this->user->getId();
 

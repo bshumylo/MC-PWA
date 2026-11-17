@@ -12,3 +12,9 @@ EspoCRM and PHP versions, the extension version and the steps to reproduce.
 
 You can expect an acknowledgement within a few days. A fix is released as a new version; the advisory is published
 after users have had time to update.
+
+## Security design and known limits
+
+The security measures of the extension and its known limits (shared devices, notification text on the lock screen,
+public manifest, contact address sent to the push services) are described in the *Security* section of the
+[README](README.md#security).
