@@ -92,13 +92,13 @@ class PostStats implements Action
 
             $installation = $this->entityManager->getNewEntity('PwaInstallation');
 
-            $installation->set([
+            $installation->setMultiple([
                 'anonymousId' => $anonymousId,
                 'installedAt' => $now,
             ]);
         }
 
-        $installation->set([
+        $installation->setMultiple([
             'name' => $platform . ($osVersion ? ' ' . $osVersion : '') . ' / ' . $deviceType,
             'platform' => $platform,
             'osVersion' => $osVersion,

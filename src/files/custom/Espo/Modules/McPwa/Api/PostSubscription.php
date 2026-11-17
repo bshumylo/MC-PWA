@@ -118,7 +118,7 @@ class PostSubscription implements Action
         }
 
         if ($existing) {
-            $existing->set([
+            $existing->setMultiple([
                 'publicKey' => $p256dh,
                 'authKey' => $auth,
                 'endpointHash' => hash('sha256', $endpoint),

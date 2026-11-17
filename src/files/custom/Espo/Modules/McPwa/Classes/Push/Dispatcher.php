@@ -72,7 +72,7 @@ class Dispatcher
             return;
         }
 
-        $subscription->set([
+        $subscription->setMultiple([
             'lastSuccessAt' => gmdate(DateTimeUtil::SYSTEM_DATE_TIME_FORMAT),
             'failureCount' => 0,
             'lastError' => null,
@@ -86,7 +86,7 @@ class Dispatcher
     {
         $message = trim((string) preg_replace('/\s+/', ' ', $message));
 
-        $subscription->set([
+        $subscription->setMultiple([
             'failureCount' => (int) $subscription->get('failureCount') + 1,
             'lastError' => mb_substr($message, 0, self::ERROR_MAX_LENGTH),
             'lastErrorAt' => gmdate(DateTimeUtil::SYSTEM_DATE_TIME_FORMAT),
