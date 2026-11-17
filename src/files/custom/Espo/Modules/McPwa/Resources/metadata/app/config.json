@@ -54,6 +54,12 @@
         },
         "pwaInstallationRetentionDays": {
             "level": "admin"
+        },
+        "pwaPushExtraHosts": {
+            "level": "admin"
+        },
+        "pwaReminderPushCheckedAt": {
+            "level": "admin"
         }
     }
 }

@@ -60,7 +60,9 @@ class PostTestPush implements Action
 
         // Throttle: one test run per user per interval.
         foreach ($subscriptions as $subscription) {
-            $last = $subscription->get('lastTestAt');
+            // A row created a moment ago counts too, so re-subscribing does not reset the limit.
+            // Both values are UTC strings in the system date-time format.
+            $last = $subscription->get('lastTestAt') ?: $subscription->get('createdAt');
 
             if ($last && strtotime($last . ' UTC') > time() - self::MIN_INTERVAL_SECONDS) {
                 throw new Forbidden('Please wait before sending another test push.');

@@ -34,20 +34,22 @@ class WebPushSender
         string $payload
     ): void {
 
-        if (!str_starts_with($endpoint, 'https://')) {
+        // Strict URL shape (https, plain DNS host, port 443, no user-info, backslash or fragment).
+        // The host is taken from this check, so it is the same host that curl reads from the URL.
+        $host = EndpointGuard::parseHost($endpoint);
+
+        if ($host === null) {
             throw new RuntimeException('Invalid endpoint.');
         }
 
-        $allowedHost = parse_url($endpoint, PHP_URL_HOST);
-
-        if (!is_string($allowedHost) || !EndpointGuard::isHostAllowed($allowedHost, $this->getExtraHosts())) {
+        if (!EndpointGuard::isHostAllowed($host, $this->getExtraHosts())) {
             throw new RuntimeException('Endpoint host is not allowed.');
         }
 
         // SSRF guard: resolve the host and reject private/reserved addresses.
         // The chosen public IP is pinned for the actual connection to avoid
         // a DNS-rebinding TOCTOU between this check and the curl request.
-        [$host, $ip] = $this->resolveSafeEndpoint($endpoint);
+        $ip = $this->resolveSafeIp($host);
 
         if (strlen($payload) > self::MAX_PAYLOAD_LENGTH) {
             $payload = mb_strcut($payload, 0, self::MAX_PAYLOAD_LENGTH);
@@ -68,56 +70,38 @@ class WebPushSender
             'Content-Length: ' . strlen($body),
             'TTL: ' . self::TTL,
             'Urgency: high',
-            'Authorization: ' . $this->buildVapidAuthorization($endpoint),
+            'Authorization: ' . $this->buildVapidAuthorization($host),
         ];
 
         $this->post($endpoint, $host, $ip, $headers, $body);
     }
 
     /**
-     * Resolve the endpoint host and ensure it points only to public IP
-     * addresses. Returns [host, pinnedIp].
-     *
-     * @return array{0: string, 1: string}
+     * Resolve the endpoint host (already validated: a DNS name, never an IP literal)
+     * and ensure it points only to public IP addresses. Returns the IP to pin.
      */
-    private function resolveSafeEndpoint(string $endpoint): array
+    private function resolveSafeIp(string $host): string
     {
-        $host = parse_url($endpoint, PHP_URL_HOST);
-
-        if (!is_string($host) || $host === '') {
-            throw new RuntimeException('Invalid endpoint host.');
-        }
-
-        $port = parse_url($endpoint, PHP_URL_PORT);
-
-        if ($port !== null && (int) $port !== 443) {
-            throw new RuntimeException('Endpoint port not allowed.');
-        }
-
         // Collect candidate IP addresses.
         $ips = [];
 
-        if (filter_var($host, FILTER_VALIDATE_IP) !== false) {
-            $ips[] = $host;
-        } else {
-            $records = @dns_get_record($host, DNS_A | DNS_AAAA) ?: [];
+        $records = @dns_get_record($host, DNS_A | DNS_AAAA) ?: [];
 
-            foreach ($records as $record) {
-                if (isset($record['ip'])) {
-                    $ips[] = $record['ip'];
-                }
-
-                if (isset($record['ipv6'])) {
-                    $ips[] = $record['ipv6'];
-                }
+        foreach ($records as $record) {
+            if (isset($record['ip'])) {
+                $ips[] = $record['ip'];
             }
 
-            if ($ips === []) {
-                $list = @gethostbynamel($host);
+            if (isset($record['ipv6'])) {
+                $ips[] = $record['ipv6'];
+            }
+        }
 
-                if (is_array($list)) {
-                    $ips = $list;
-                }
+        if ($ips === []) {
+            $list = @gethostbynamel($host);
+
+            if (is_array($list)) {
+                $ips = $list;
             }
         }
 
@@ -138,7 +122,7 @@ class WebPushSender
             }
         }
 
-        return [$host, (string) $publicIp];
+        return (string) $publicIp;
     }
 
     private function isPublicIp(string $ip): bool
@@ -236,7 +220,7 @@ class WebPushSender
     /**
      * RFC 8292 VAPID Authorization header (ES256 JWT).
      */
-    private function buildVapidAuthorization(string $endpoint): string
+    private function buildVapidAuthorization(string $host): string
     {
         $publicKeyB64 = (string) $this->config->get('pwaVapidPublicKey');
         $privateKeyPem = (string) $this->config->get('pwaVapidPrivateKey');
@@ -245,9 +229,8 @@ class WebPushSender
             throw new RuntimeException('VAPID keys are not configured.');
         }
 
-        $parts = parse_url($endpoint);
-
-        $audience = ($parts['scheme'] ?? 'https') . '://' . ($parts['host'] ?? '');
+        // The audience is the origin of the push service (always https, default port).
+        $audience = 'https://' . $host;
 
         $subject = $this->config->get('outboundEmailFromAddress');
         $siteUrl = (string) $this->config->get('siteUrl');
@@ -284,6 +267,9 @@ class WebPushSender
      */
     private function post(string $endpoint, string $host, string $ip, array $headers, string $body): void
     {
+        // IPv6 addresses must be bracketed for both curl options below.
+        $pinnedIp = str_contains($ip, ':') ? '[' . $ip . ']' : $ip;
+
         $ch = curl_init($endpoint);
 
         curl_setopt_array($ch, [
@@ -310,8 +296,10 @@ class WebPushSender
             CURLOPT_PROTOCOLS => CURLPROTO_HTTPS,
             // Pin the pre-validated public IP so curl cannot be redirected to
             // a private address by a DNS answer that changed after the check.
-            // IPv6 addresses must be bracketed, otherwise curl ignores the entry and resolves the host again.
-            CURLOPT_RESOLVE => [$host . ':443:' . (str_contains($ip, ':') ? '[' . $ip . ']' : $ip)],
+            CURLOPT_RESOLVE => [$host . ':443:' . $pinnedIp],
+            // Second layer: whatever host and port curl reads from the URL, it connects only to
+            // the validated public IP on port 443. TLS still verifies the certificate for the URL host.
+            CURLOPT_CONNECT_TO => ['::' . $pinnedIp . ':443'],
         ]);
 
         $result = curl_exec($ch);

@@ -1,107 +1,125 @@
-# MC PWA — Progressive Web App
+# MC PWA
+
+**Turn EspoCRM into an app your users can install on a phone or computer, with push notifications and a bottom navigation bar.**
+
+English · [Українська](README.uk.md)
+
+Version **1.3.2** · EspoCRM **≥ 10.0.0** · PHP **≥ 8.3** · AGPL-3.0
 
 <img width="1200" height="630" alt="mc-pwa-cover" src="https://github.com/user-attachments/assets/ea78cb9f-c1a4-4b2c-b2ee-044246da819c" />
 
-Turns your EspoCRM instance into an installable mobile/desktop app with Web Push notifications, a configurable bottom navigation bar, app shortcuts and optional anonymous install statistics.
+## What it does
 
-## Features
-
-- **Installable PWA** — users can add the EspoCRM to their home screen (Android, iOS 16.4+, desktop Chrome/Edge). Manifest, service worker and icons are generated dynamically from settings; maskable icon variants are provided for Android launchers.
-- **Web Push notifications** — system notifications (assignments, emails, mentions, stream posts, messages, system) and popup reminders are delivered to devices even when the browser is closed. Implemented in pure PHP (RFC 8291 `aes128gcm` encryption + RFC 8292 VAPID `ES256`), **no Composer dependencies**.
-- **Bottom navigation bar** (since 1.1) — a native-app-like button bar shown at the bottom of the screen in the installed app on mobile devices. Configured in the admin panel with the same editor as the core Tab List (User Interface): drag-and-drop ordering, entity tabs picked from a searchable list (their icon, color and label are taken from the system automatically), and custom URL buttons with a label, icon, icon color, ACL scope, admin-only and open-in-new-tab options. Labels under icons can be switched off globally (icons-only mode). Buttons are filtered by the user's access rights; the bar adapts to light/dark themes and to iPhone safe areas.
-- **Reminder push** — an every-minute scheduled job delivers popup reminders (meetings, calls, tasks) as push messages.
-- **Test push** — a "Send Test Push" button in the admin panel verifies end-to-end delivery per subscription (sent / expired / error).
-- **Diagnostics** (since 1.3) — a "Diagnostics" button shows the push health at a glance: VAPID keys, subscription counts (and how many are failing), the last run of the reminder job, PHP/openssl/curl/gd availability and the most recent delivery errors.
-- **VAPID key rotation** (since 1.3) — a "Rotate VAPID Keys" button generates a new key pair. Existing subscriptions belong to the old key, so they are removed; devices resubscribe automatically the next time the app is opened.
-- **Delivery log** (since 1.3) — every subscription records the last successful delivery, the last error and the number of failures in a row (visible in *PWA Push Subscriptions*).
-- **Automatic cleanup** (since 1.3) — a daily job removes subscriptions that failed *Max Delivery Failures* times in a row and anonymous installation records not seen for *Installation Retention* days.
-- **Per-user push settings** (since 1.3) — each user picks the notification types they want and optional quiet hours (the user-menu item *Push Notification Settings*, stored in Preferences). Quiet hours use the user's time zone and may cross midnight; notifications stay available in the app.
-- **Configurable appearance** — app name, short name, theme color, background color and icon are set in the admin panel.
-- **App shortcuts** — quick actions from the app icon.
-- **Anonymous install statistics** (opt-in, off by default) — random identifier, device type, platform and OS version only; no user data. The OS version is taken from User-Agent Client Hints where available (real Windows 10/11, Android and macOS versions); when the browser does not expose a reliable version, the field is left empty instead of showing a misleading value.
-- **Separate data-collection controls** — installation statistics and push subscriptions are enabled/disabled independently in settings.
+- **Installable app.** Users can add EspoCRM to the home screen (Android, iPhone with iOS 16.4 or newer, Chrome or Edge on a computer). You set the app name, short name, colors and icon in the admin panel.
+- **Push notifications.** Assignments, received emails, mentions, stream posts, messages and system notifications reach the device even when the browser is closed. Popup reminders for meetings, calls and tasks are sent as push messages too. No Composer libraries are needed.
+- **Bottom navigation bar.** A button bar at the bottom of the screen, like in a native app. You choose the buttons: entity tabs or your own links. Users see only the buttons they have access to.
+- **Personal push settings.** Each user picks which notifications to receive and can set quiet hours (user menu → *Push Notification Settings*).
+- **Easy checks.** *Send Test Push* tests delivery. *Diagnostics* shows the health of push at a glance. *Rotate VAPID Keys* creates new keys.
+- **Automatic cleanup.** A daily job removes broken push subscriptions and old install records.
+- **App shortcuts.** Quick actions from the app icon.
+- **Optional install statistics.** Off by default. Anonymous only: a random ID, device type, platform and OS version. No user data.
 
 ## Requirements
 
-- EspoCRM ≥ 10.0 (built on the official extension template)
-- PHP 8.3 – 8.5 with `openssl`, `curl` and `gd`
-- HTTPS (required by browsers for service workers and push)
-- Running cron/daemon (for push notification delivery)
+- EspoCRM 10.0.0 or newer.
+- PHP 8.3 – 8.5 with the `openssl`, `curl` and `gd` extensions.
+- HTTPS. Browsers require it for service workers and push.
+- Cron (or the daemon) running for EspoCRM. It is needed to deliver push notifications.
 
 ## Installation
 
-1. Download `mc-pwa-<version>.zip` from [Releases](https://github.com/bshumylo/MC-PWA/releases).
-2. In the EspoCRM: **Administration → Extensions → Upload**, select the zip and install.
-3. Go to **Administration → PWA**, enable PWA and (optionally) push notifications and the bottom navigation bar.
-4. Rebuild if prompted.
+1. Download `mc-pwa-1.3.2.zip` from [Releases](../../releases/latest). Do not use the automatic "Source code (zip)" file: it cannot be installed.
+2. In EspoCRM open **Administration → Extensions → Upload**, choose the ZIP, then click **Install**. The installer rebuilds the system itself. Run **Administration → Rebuild** only if something looks wrong.
+3. Open **Administration → PWA → PWA Settings**. Turn on PWA and, if you want them, push notifications and the bottom navigation bar.
 
-VAPID keys are generated automatically during installation. The private key is stored in the internal config and never leaves the server; the public key is shown read-only in the admin panel.
+The push keys (VAPID) are created automatically during installation. The private key stays on your server. The public key is shown read-only in the admin panel.
 
-When upgrading from 1.0.x, bottom bar buttons saved in the old format are migrated automatically.
+## Upgrading
 
-## Configuration (Administration → PWA)
+1. Make a backup of the database and files.
+2. Install the new ZIP over the old one (**Administration → Extensions → Upload → Install**).
+3. Version notes:
+   - From **1.0.x**: bottom bar buttons saved in the old format are converted automatically.
+   - **1.3.2**: no manual steps. The installer rebuilds the system itself. Since this version, when another user opens the app on a shared device, the old subscription is replaced with one for the new user (see Security).
 
-| Setting | Description |
+## Settings
+
+Open **Administration → PWA → PWA Settings**.
+
+| Setting | What it does |
 |---|---|
-| PWA Enabled | Allows users to install the EspoCRM as an app |
-| App Name / Short Name | Names shown on the device |
-| Theme / Background Color | App UI and splash screen colors |
-| App Icon | Square PNG, 512×512 recommended (falls back to company logo) |
-| Push Notifications Enabled | Delivery of system notifications as push messages |
-| Push Notification Types | Assignment, Email Received, Message, Stream Post, Mention, System |
-| Bottom Navigation Bar Enabled | Shows the button bar in the installed app on mobile devices (off by default) |
-| Show Button Labels | Text labels under icons; when off, only (slightly larger) icons are shown |
-| Bottom Bar Buttons | Up to 8 buttons (3–5 recommended): entity tabs or custom URL buttons; reorder by drag and drop, edit URL buttons via the pencil icon |
-| Installation Statistics Enabled | Anonymous install stats (off by default) |
-| Installation Retention (days) | Installation records not seen for this long are removed by the daily cleanup; 0 keeps them forever (default 365) |
-| Push Subscriptions Enabled | Whether devices may register push subscriptions (on by default). When off, no new subscriptions are stored; existing ones are kept |
-| Max Delivery Failures | A subscription is removed after this many failed deliveries in a row; 0 disables the removal (default 10) |
+| PWA Enabled | Lets users install EspoCRM as an app. |
+| App Name / Short Name | Names shown on the device. |
+| Theme / Background Color | Colors of the app and its start screen. |
+| App Icon | Square PNG, 512×512 recommended. If empty, the company logo is used. |
+| Push Notifications Enabled | Sends system notifications as push messages. |
+| Push Notification Types | Assignment, Email Received, Message, Stream Post, Mention, System. |
+| Bottom Navigation Bar Enabled | Shows the button bar in the installed app on mobile devices. Off by default. |
+| Show Button Labels | Text under the icons. When off, only slightly larger icons are shown. |
+| Bottom Bar Buttons | Up to 8 buttons (3–5 recommended): entity tabs or custom links. Drag to reorder; edit link buttons with the pencil icon. |
+| Installation Statistics Enabled | Anonymous install statistics. Off by default. |
+| Installation Retention (days) | Install records not seen for this long are deleted by the daily cleanup. 0 keeps them forever. Default 365. |
+| Push Subscriptions Enabled | Lets devices register for push. On by default. When off, no new subscriptions are saved; existing ones stay. |
+| Max Delivery Failures | A subscription is removed after this many failed deliveries in a row. 0 turns the removal off. Default 10. |
 
-The **PWA** admin section also contains the **PWA Installations** (anonymous statistics) and **PWA Push Subscriptions** lists.
+The **PWA** section of the Administration page also has two lists: **PWA Installations** (the anonymous statistics) and **PWA Push Subscriptions**. Each subscription shows its last successful delivery, last error and number of failures in a row.
 
-### Bottom bar notes
+The buttons on the settings page are *Send Test Push*, *Diagnostics* and *Rotate VAPID Keys*. Rotating the keys removes all subscriptions; devices subscribe again automatically the next time the app is opened. *Diagnostics* shows the keys, subscription counts (and how many fail), the last run of the reminder job, PHP `openssl`/`curl`/`gd` checks and the latest delivery errors.
 
-- The bar appears **only in the installed (standalone) app** on screens narrower than 768 px. For testing in a regular browser tab, run `localStorage.setItem('mcPwaBottomBarForce', '1')` in the console and reload (an authenticated session is still required).
-- Entity buttons inherit the icon, color and plural label of the entity and are hidden for users without access to that entity. Custom URL buttons support an ACL scope, an admin-only flag and opening in a new tab.
+**Config file parameter.** `pwaPushExtraHosts` (in `data/config.php` only) is a list of extra push service host names. It is empty by default. Leave it empty unless you really need another push service.
 
-## How it works
+**About the bottom bar.**
 
-- Entry points (no auth, GET): `pwaManifest`, `pwaServiceWorker`, `pwaIcon`, `pwaConfig`.
-- API routes (authenticated): `GET /McPwa/bottomBar`; admin only: `GET /McPwa/status`, `POST /McPwa/rotateVapid`; with the `X-Requested-With` CSRF header: `POST /McPwa/subscription`, `POST /McPwa/stats`, `POST /McPwa/testPush`.
-- The bottom bar configuration is served only to authenticated users; scope buttons are resolved server-side (label, icon, color, ACL) for the current user and language.
-- A hook on `Notification` afterSave queues a job that encrypts and sends the push payload via `Classes/Push/WebPushSender`.
-- The `McPwaSendReminderPush` scheduled job (created automatically, `* * * * *`) sends popup reminders as push messages; `McPwaCleanup` (`30 3 * * *`) does the housekeeping.
-- All deliveries go through `Classes/Push/Dispatcher`, which records the delivery state and removes expired (404/410) subscriptions.
+- It appears only in the installed app, on screens narrower than 768 px. To test it in a normal browser tab, run `localStorage.setItem('mcPwaBottomBarForce', '1')` in the browser console and reload. You still need to be logged in.
+- Entity buttons take their icon, color and name from the entity. They are hidden from users who cannot access that entity. Link buttons can have an access scope, an admin-only flag and an "open in new tab" option.
 
-## Development
+**Scheduled jobs.** Both are created automatically: *McPwaSendReminderPush* (every minute) and *McPwaCleanup* (daily at 03:30).
 
-Based on the official [extension template](https://github.com/espocrm/ext-template).
+## Security
+
+- **Shared devices.** A push subscription belongs to the browser, not to the login session. The app unsubscribes the device when a user logs out. If a session just expires, the device keeps receiving the old user's notifications until someone logs out there, another user opens the app there, or an admin deletes the subscription. On shared computers always use *Log Out*.
+- **What a notification shows.** A push message can contain record names, email subjects and a short part of a stream post (only what the user may read). The operating system may show it on the lock screen. If a device is lost, delete the user's rows in *PWA Push Subscriptions*.
+- **Public files.** The web manifest and the client config are public, because browsers fetch them without a login. They contain the app name, colors, language, enabled PWA features, the public push key and your *Quick Create* entity types (as shortcuts). Do not give confidential names to those entities.
+- **Keys.** The private push key is kept in the internal config and is never sent through the API. It is created per installation; no secrets are stored in the repository.
+- **Privacy.** Install statistics are anonymous and off by default. Push subscriptions can be switched off separately. At most 5000 install records are kept.
+- **Contact address.** As the Web Push standard requires, the push token contains a contact address: the system outbound email address (or the site URL if it is empty).
+
+To report a vulnerability, see [SECURITY.md](SECURITY.md).
+
+## For developers
+
+**Build the ZIP locally.** The extension uses the official template.
 
 ```bash
 npm install
-node build --all        # full site build for development
-node build --extension  # build installable extension zip (in build/)
+node build --all        # full development site
+node build --extension  # installable ZIP in build/ (mc-pwa-<version>.zip)
 npm run sa              # static analysis (phpstan)
 npm run unit-tests      # unit tests (phpunit)
 ```
 
-A server-side self-test for the Web Push crypto stack is available at `tests/webpush-selftest.php`; a manual QA checklist is in `tests/manual-checklist.md`.
+A server self-test of the Web Push encryption is in `tests/webpush-selftest.php`. A manual QA checklist is in `tests/manual-checklist.md`.
 
-## Security
+**Releases.** Raise the version in `extension.json` and `package.json` and merge it into `main`. The workflow [.github/workflows/release.yml](.github/workflows/release.yml) creates the release `vX.Y.Z` with `mc-pwa-X.Y.Z.zip` automatically. See [CHANGELOG.md](CHANGELOG.md) for the history.
 
-- No secrets are stored in the repository; VAPID keys are generated per-installation. The private key is kept in the internal config (`config-internal.php`) and is never exposed through the API.
-- Push payload encryption follows RFC 8291; VAPID signing follows RFC 8292.
-- All API endpoints require authentication; authenticated POST endpoints additionally require the `X-Requested-With` header (CSRF protection). `testPush` is limited to the current user's own subscriptions.
-- **SSRF protection** — before delivering a push, the target endpoint host is resolved and rejected if it points to any private, loopback, link-local or otherwise reserved address; the validated public IP is pinned for the connection (guards against DNS-rebinding), and only HTTPS on port 443 is allowed.
-- **Subscription ownership** — push subscriptions are scoped to their owner: a user can only remove their own subscription, and an endpoint bound to another account is never silently reassigned.
-- The bottom bar endpoint requires authentication; all button values (URLs, icon classes, colors) are validated and sanitized server-side, and buttons are filtered by the user's access rights.
-- **Shared devices** — a subscription follows the browser, not the session. The app unsubscribes the device on logout; if a session simply expires, the device keeps receiving the previous user's notifications until someone logs out there or the subscription is removed (admins can delete it in *PWA Push Subscriptions*).
-- The web manifest is public by design (browsers fetch it without credentials) and lists the *Quick Create* entity types as app shortcuts; do not put confidential custom entity names there.
-- Statistics are anonymous and disabled by default; push subscription collection can be disabled separately. Stored installation rows are capped to bound table growth.
-- All user-supplied input (subscription keys, endpoints, identifiers, colors, icon classes, labels) is strictly validated and sanitized; the client renders bar items via DOM APIs (no `innerHTML`) with `rel="noopener noreferrer"` on external links.
+**How it works.**
 
-## License
+- Public entry points (GET): `pwaManifest`, `pwaServiceWorker`, `pwaIcon`, `pwaConfig`. The manifest, service worker and icons are generated from the settings.
+- API (login required): `GET /McPwa/bottomBar`. Admin only: `GET /McPwa/status`, `POST /McPwa/rotateVapid`. With the `X-Requested-With` header (CSRF protection): `POST /McPwa/subscription`, `POST /McPwa/stats`, `POST /McPwa/testPush`.
+- A hook on `Notification` (after save) queues a job that encrypts and sends the push through `Classes/Push/WebPushSender` (RFC 8291 `aes128gcm`, VAPID RFC 8292 `ES256`, pure PHP). All deliveries go through `Classes/Push/Dispatcher`, which records the result and removes expired (404/410) subscriptions.
+- The bottom bar config is served only to logged-in users. Buttons are resolved on the server (label, icon, color, access) for the current user and language, and every value (URL, icon class, color) is validated and cleaned. The browser draws the bar with DOM APIs (no `innerHTML`) and `rel="noopener noreferrer"` on external links.
 
-AGPL-3.0 — see [LICENSE](LICENSE).
+**Security details.**
 
-Author: bshumylo
+- `testPush` works only on the user's own subscriptions, once per 30 seconds (a new subscription can be tested 30 seconds after it was created).
+- SSRF protection: a push endpoint must be a plain `https://host[:443]/path` URL (no user-info, backslash, fragment, IP address or other port) on a known push service (Google, Mozilla, Microsoft, Apple). Before sending, the host is resolved and rejected if it points to a private, loopback, link-local or reserved address. The connection is pinned to the checked public IP on port 443 (protects against DNS rebinding). `pwaPushExtraHosts` widens the allowed list.
+- Ownership: a user can remove only their own subscription, and an endpoint that belongs to another account is never silently reassigned.
+- All input (keys, endpoints, identifiers, colors, icon classes, labels) is strictly validated.
+
+## Author and license
+
+Developed by [bshumylo](https://github.com/bshumylo). Built on the official [EspoCRM extension template](https://github.com/espocrm/ext-template).
+
+Licensed under the [GNU AGPL v3](LICENSE). Use it at your own risk and test new versions on a copy of your CRM first.
+
+Found a bug or have an idea? Open an [issue](../../issues).

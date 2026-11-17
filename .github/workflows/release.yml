@@ -1,14 +1,33 @@
 name: Release
 
-# Creates a tag and a GitHub release with the extension zip whenever a new
-# version (extension.json) lands on main. Nothing happens when the tag exists.
+# The same file is used in every MC extension repository.
+#
+# A new release is created automatically when a commit that changes the
+# extension version reaches main:
+#   - version file: extension.json (ext-template layout) or manifest.json;
+#   - tag and release name: v<version>, for example v1.2.3;
+#   - the ZIP is built from that commit and attached to the release.
+# Nothing happens when the release for that version already exists, so a
+# push to main without a version bump never overwrites a release.
+#
+# Other ways to start it:
+#   - push a tag v<version> (it must match the version file);
+#   - Actions -> Release -> Run workflow (builds the version on main).
+#
+# How the ZIP is built:
+#   - with package.json (ext-template): npm ci, then `node build --extension`,
+#     the ZIP is build/<name>-<version>.zip;
+#   - without package.json: manifest.json, files/ and scripts/ (when present),
+#     LICENSE and README.md are zipped as <name>-<version>.zip, where <name>
+#     is the repository name in lower case without the "MC-" prefix.
+
 on:
   push:
     branches: [main]
     paths:
       - extension.json
-    # Pushing a version tag (for example 1.3.0) builds the release for that tag.
-    tags: ['[0-9]+.[0-9]+.[0-9]+']
+      - manifest.json
+    tags: ['v[0-9]+.[0-9]+.[0-9]+']
   workflow_dispatch:
 
 permissions:
@@ -21,60 +40,104 @@ concurrency:
 jobs:
   release:
     runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
       - name: Read version
         id: version
         run: |
-          version=$(node -p "require('./extension.json').version")
+          set -euo pipefail
+          if [ -f extension.json ]; then
+            version_file=extension.json
+          else
+            version_file=manifest.json
+          fi
+          version=$(jq -r .version "$version_file")
           if ! [[ "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-            echo "::error::Invalid version in extension.json: $version"
+            echo "::error::Invalid version in $version_file: $version"
             exit 1
           fi
-          package_version=$(node -p "require('./package.json').version")
-          if [ "$version" != "$package_version" ]; then
-            echo "::error::extension.json ($version) and package.json ($package_version) versions differ"
-            exit 1
+          if [ -f package.json ]; then
+            package_version=$(jq -r .version package.json)
+            if [ "$version" != "$package_version" ]; then
+              echo "::error::$version_file ($version) and package.json ($package_version) versions differ"
+              exit 1
+            fi
           fi
-          if [ "${GITHUB_REF_TYPE}" = "tag" ] && [ "${GITHUB_REF_NAME}" != "$version" ]; then
-            echo "::error::Tag ${GITHUB_REF_NAME} does not match the extension.json version $version"
+          if [ "$GITHUB_REF_TYPE" = "tag" ] && [ "$GITHUB_REF_NAME" != "v$version" ]; then
+            echo "::error::Tag $GITHUB_REF_NAME does not match the $version_file version $version"
             exit 1
           fi
           echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "tag=v$version" >> "$GITHUB_OUTPUT"
 
       - name: Skip if the release exists
         id: exists
-        env:
-          GH_TOKEN: ${{ github.token }}
         run: |
-          if gh release view "${{ steps.version.outputs.version }}" >/dev/null 2>&1; then
-            echo "Release ${{ steps.version.outputs.version }} already exists."
+          if gh release view "${{ steps.version.outputs.tag }}" >/dev/null 2>&1; then
+            echo "Release ${{ steps.version.outputs.tag }} already exists. Nothing to do."
             echo "exists=true" >> "$GITHUB_OUTPUT"
           else
             echo "exists=false" >> "$GITHUB_OUTPUT"
           fi
 
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
-        if: steps.exists.outputs.exists == 'false'
+        if: steps.exists.outputs.exists == 'false' && hashFiles('package.json') != ''
         with:
-          node-version: 20
+          node-version: 22
           cache: npm
 
-      - name: Build extension package
-        if: steps.exists.outputs.exists == 'false'
-        run: |
-          npm ci --ignore-scripts
-          node build --extension
-          test -f "build/mc-pwa-${{ steps.version.outputs.version }}.zip"
-
-      - name: Create tag and release
+      - name: Build the extension ZIP
+        id: build
         if: steps.exists.outputs.exists == 'false'
         env:
-          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ steps.version.outputs.version }}
         run: |
-          gh release create "${{ steps.version.outputs.version }}" \
-            "build/mc-pwa-${{ steps.version.outputs.version }}.zip" \
-            --target "${{ github.sha }}" \
-            --title "v${{ steps.version.outputs.version }}" \
+          set -euo pipefail
+          if [ -f package.json ]; then
+            # Lockfiles may pin the EspoCRM build tools as git+ssh URLs; the runner has no SSH key.
+            git config --global url."https://github.com/".insteadOf "ssh://git@github.com/"
+            git config --global --add url."https://github.com/".insteadOf "git@github.com:"
+            npm ci --ignore-scripts
+            node build --extension
+            shopt -s nullglob
+            zips=(build/*-"$VERSION".zip)
+            if [ "${#zips[@]}" -ne 1 ]; then
+              echo "::error::Expected one build/*-$VERSION.zip, found ${#zips[@]}"
+              exit 1
+            fi
+            zip_path="${zips[0]}"
+          else
+            name="${GITHUB_REPOSITORY#*/}"
+            name="${name,,}"
+            name="${name#mc-}"
+            zip_path="$name-$VERSION.zip"
+            parts=(manifest.json files)
+            for extra in scripts LICENSE README.md; do
+              [ -e "$extra" ] && parts+=("$extra")
+            done
+            zip -rq "$zip_path" "${parts[@]}"
+          fi
+          unzip -l "$zip_path" | tail -n 1
+          sha256sum "$zip_path" | tee -a "$GITHUB_STEP_SUMMARY"
+          echo "zip=$zip_path" >> "$GITHUB_OUTPUT"
+          echo "sha256=$(sha256sum "$zip_path" | cut -d' ' -f1)" >> "$GITHUB_OUTPUT"
+
+      - name: Create the tag and the release
+        if: steps.exists.outputs.exists == 'false'
+        env:
+          TAG: ${{ steps.version.outputs.tag }}
+          ZIP: ${{ steps.build.outputs.zip }}
+          SHA256: ${{ steps.build.outputs.sha256 }}
+        run: |
+          set -euo pipefail
+          gh release create "$TAG" "$ZIP" \
+            --target "$GITHUB_SHA" \
+            --title "$TAG" \
+            --notes "SHA-256 of $(basename "$ZIP"): \`$SHA256\`" \
             --generate-notes

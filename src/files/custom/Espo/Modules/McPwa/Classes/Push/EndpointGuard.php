@@ -3,7 +3,7 @@
 namespace Espo\Modules\McPwa\Classes\Push;
 
 /**
- * Validation of Web Push endpoints: host allowlist and public-IP check.
+ * Validation of Web Push endpoints: URL shape, host allowlist and public-IP check.
  */
 class EndpointGuard
 {
@@ -51,6 +51,44 @@ class EndpointGuard
         }
 
         return false;
+    }
+
+    /**
+     * Strict shape check for a push endpoint URL.
+     *
+     * URL parsers (PHP's parse_url(), curl) do not always agree on what the host of an
+     * unusual URL is, so only one plain shape is accepted:
+     * "https://" + DNS host name + optional ":443" + "/" + path and query.
+     * Refused: user-info (@), backslash, whitespace and control characters, fragment (#),
+     * IP literals, any port other than 443.
+     */
+    public static function isWellFormed(string $endpoint): bool
+    {
+        return self::parseHost($endpoint) !== null;
+    }
+
+    /**
+     * The host of a well-formed endpoint (lower case), or null if the URL is refused.
+     * Callers use this value, so the host that is checked is exactly the host in the URL.
+     */
+    public static function parseHost(string $endpoint): ?string
+    {
+        $matched = preg_match(
+            '~\Ahttps://' .
+            // DNS name: labels of letters, digits and hyphens; the last label starts with a letter.
+            '((?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z](?:[a-z0-9-]{0,61}[a-z0-9])?)' .
+            '(?::443)?' .
+            // Path and query: URL-safe ASCII only. No "@", "\", "#", spaces or control characters.
+            '/[A-Za-z0-9._\~%!$&\'()*+,;=:/?-]*\z~Di',
+            $endpoint,
+            $matches
+        );
+
+        if ($matched !== 1 || strlen($matches[1]) > 253) {
+            return null;
+        }
+
+        return strtolower($matches[1]);
     }
 
     public static function isPublicIp(string $ip): bool

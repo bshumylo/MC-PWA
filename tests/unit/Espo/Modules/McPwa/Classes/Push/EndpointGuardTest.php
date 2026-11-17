@@ -70,6 +70,115 @@ class EndpointGuardTest extends TestCase
         $this->assertSame($expected, EndpointGuard::isHostAllowed($host));
     }
 
+    /**
+     * @return array<string, array{string, bool}>
+     */
+    public static function endpointProvider(): array
+    {
+        return [
+            // Shapes of real browser push endpoints (tokens are made up).
+            'fcm' => ['https://fcm.googleapis.com/fcm/send/dQw4w9WgXcQ:APA91bHPRgkF_abc-DEF123', true],
+            'fcm wp' => ['https://fcm.googleapis.com/wp/dQw4w9WgXcQ:APA91bHPRgkF_abc-DEF123', true],
+            'mozilla' => ['https://updates.push.services.mozilla.com/wpush/v2/gAAAAABl_abc-DEF123==', true],
+            'apple' => ['https://web.push.apple.com/QGuVlEEV7w8xHBTyrvyPH_abc-DEF123', true],
+            'windows' => [
+                'https://wns2-par02p.notify.windows.com/w/?token=BQYAAAD%2bAbc%2fDEF123%3d%3d',
+                true,
+            ],
+            'explicit port 443' => ['https://fcm.googleapis.com:443/fcm/send/abc', true],
+            'upper case host' => ['https://FCM.GoogleAPIs.com/fcm/send/abc', true],
+            'root path' => ['https://fcm.googleapis.com/', true],
+
+            // Tricks that make URL parsers disagree about the host.
+            'backslash user-info' => ['https://10.0.0.5:8443\@fcm.googleapis.com/x', false],
+            'backslash loopback' => ['https://127.0.0.1:8443\@fcm.googleapis.com/x', false],
+            'user-info' => ['https://a@fcm.googleapis.com/x', false],
+            'user-info with password' => ['https://a:b@fcm.googleapis.com/x', false],
+            'at sign in path' => ['https://fcm.googleapis.com/x@y', false],
+            'at sign in query' => ['https://fcm.googleapis.com/x?a=b@10.0.0.5', false],
+            'backslash in path' => ['https://fcm.googleapis.com/x\y', false],
+            'backslash after host' => ['https://fcm.googleapis.com\x', false],
+            'other port' => ['https://fcm.googleapis.com:8443/x', false],
+            'port 80' => ['https://fcm.googleapis.com:80/x', false],
+            'empty port' => ['https://fcm.googleapis.com:/x', false],
+            'padded port' => ['https://fcm.googleapis.com:0443/x', false],
+            'fragment' => ['https://fcm.googleapis.com/x#y', false],
+            'fragment after host' => ['https://10.0.0.5#@fcm.googleapis.com/x', false],
+            'query after host' => ['https://10.0.0.5?@fcm.googleapis.com/x', false],
+
+            // Whitespace and control characters.
+            'space' => ['https://fcm.googleapis.com/x y', false],
+            'leading space' => [' https://fcm.googleapis.com/x', false],
+            'tab' => ["https://fcm.googleapis.com/x\ty", false],
+            'trailing newline' => ["https://fcm.googleapis.com/x\n", false],
+            'cr lf' => ["https://fcm.googleapis.com/x\r\nHost: evil.test", false],
+            'null byte' => ["https://fcm.googleapis.com/x\0", false],
+            'null byte in host' => ["https://10.0.0.5\0.fcm.googleapis.com/x", false],
+            'non-ascii' => ["https://fcm.googleapis.com/\u{2044}x", false],
+            'non-ascii host' => ["https://fcm.googleapis\u{3002}com/x", false],
+
+            // Wrong scheme or host form.
+            'http' => ['http://fcm.googleapis.com/x', false],
+            'no scheme' => ['fcm.googleapis.com/x', false],
+            'scheme relative' => ['//fcm.googleapis.com/x', false],
+            'single slash' => ['https:/fcm.googleapis.com/x', false],
+            'triple slash' => ['https:///fcm.googleapis.com/x', false],
+            'no path' => ['https://fcm.googleapis.com', false],
+            'query without path' => ['https://fcm.googleapis.com?x', false],
+            'ipv4 literal' => ['https://8.8.8.8/x', false],
+            'ipv4 loopback' => ['https://127.0.0.1/x', false],
+            'decimal ip' => ['https://2130706433/x', false],
+            'hex ip' => ['https://0x7f.0.0.1/x', false],
+            'ipv6 literal' => ['https://[::1]/x', false],
+            'single label' => ['https://localhost/x', false],
+            'trailing dot' => ['https://fcm.googleapis.com./x', false],
+            'empty label' => ['https://fcm..googleapis.com/x', false],
+            'leading hyphen label' => ['https://-fcm.googleapis.com/x', false],
+            'underscore host' => ['https://fcm_x.googleapis.com/x', false],
+            'percent in host' => ['https://fcm.googleapis.com%2f.evil.test/x', false],
+            'empty' => ['', false],
+        ];
+    }
+
+    #[DataProvider('endpointProvider')]
+    public function testIsWellFormed(string $endpoint, bool $expected): void
+    {
+        $this->assertSame($expected, EndpointGuard::isWellFormed($endpoint));
+    }
+
+    public function testParseHostReturnsTheLowerCaseHost(): void
+    {
+        $this->assertSame('fcm.googleapis.com', EndpointGuard::parseHost('https://FCM.GoogleAPIs.com:443/fcm/send/abc'));
+        $this->assertSame(
+            'wns2-par02p.notify.windows.com',
+            EndpointGuard::parseHost('https://wns2-par02p.notify.windows.com/w/?token=abc%2bdef')
+        );
+        $this->assertNull(EndpointGuard::parseHost('https://10.0.0.5:8443\@fcm.googleapis.com/x'));
+    }
+
+    /**
+     * For every accepted endpoint PHP's own URL parser must see the same host and no surprises.
+     */
+    #[DataProvider('endpointProvider')]
+    public function testAcceptedEndpointsAreUnambiguous(string $endpoint, bool $expected): void
+    {
+        if (!$expected) {
+            $this->assertNull(EndpointGuard::parseHost($endpoint));
+
+            return;
+        }
+
+        $parts = parse_url($endpoint);
+
+        $this->assertIsArray($parts);
+        $this->assertSame(EndpointGuard::parseHost($endpoint), strtolower($parts['host'] ?? ''));
+        $this->assertSame('https', $parts['scheme'] ?? null);
+        $this->assertContains($parts['port'] ?? 443, [443]);
+        $this->assertArrayNotHasKey('user', $parts);
+        $this->assertArrayNotHasKey('pass', $parts);
+        $this->assertArrayNotHasKey('fragment', $parts);
+    }
+
     public function testExtraHostsAreHonoured(): void
     {
         $this->assertFalse(EndpointGuard::isHostAllowed('push.example.org'));
