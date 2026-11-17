@@ -39,7 +39,7 @@ VAPID keys are generated automatically during installation. The private key is s
 
 When upgrading from 1.0.x, bottom bar buttons saved in the old format are migrated automatically.
 
-Upgrading to 1.3.2 needs no manual steps: install the new zip over the old one, then run **Administration → Rebuild**.
+Upgrading to 1.3.2 needs no manual steps: install the new zip over the old one. The installer rebuilds the system itself.
 
 ## Configuration (Administration → PWA)
 
