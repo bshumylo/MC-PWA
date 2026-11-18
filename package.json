@@ -1,6 +1,6 @@
 {
   "name": "mc-pwa",
-  "version": "1.3.2",
+  "version": "1.3.3",
   "description": "Installable mobile/desktop app with notifications, shortcuts and anonymous statistics.",
   "scripts": {
     "sa": "vendor/bin/phpstan",
