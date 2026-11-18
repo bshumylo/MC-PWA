@@ -10,13 +10,13 @@
                 "recordView": "mc-pwa:views/admin/pwa-settings"
             },
             {
-                "url": "#PwaInstallation",
+                "url": "#PwaInstallation/list/fromAdmin=true",
                 "label": "PWA Installations",
                 "iconClass": "fas fa-chart-bar",
                 "description": "pwaInstallations"
             },
             {
-                "url": "#PwaSubscription",
+                "url": "#PwaSubscription/list/fromAdmin=true",
                 "label": "PWA Push Subscriptions",
                 "iconClass": "fas fa-bell",
                 "description": "pwaSubscriptions"
