@@ -1,5 +1,6 @@
 {
   "module": "McPwa",
+  "packageName": "McPwa",
   "name": "MC PWA",
   "description": "Installable mobile/desktop app with notifications, shortcuts and anonymous statistics.",
   "author": "bshumylo",
