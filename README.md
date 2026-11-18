@@ -4,7 +4,7 @@
 
 English · [Українська](README.uk.md)
 
-Version **1.3.2** · EspoCRM **≥ 10.0.0** · PHP **≥ 8.3** · AGPL-3.0
+Version **1.3.3** · EspoCRM **≥ 10.0.0** · PHP **≥ 8.3** · AGPL-3.0
 
 <img width="1200" height="630" alt="mc-pwa-cover" src="https://github.com/user-attachments/assets/ea78cb9f-c1a4-4b2c-b2ee-044246da819c" />
 
@@ -28,7 +28,7 @@ Version **1.3.2** · EspoCRM **≥ 10.0.0** · PHP **≥ 8.3** · AGPL-3.0
 
 ## Installation
 
-1. Download `mc-pwa-1.3.2.zip` from [Releases](../../releases/latest). Do not use the automatic "Source code (zip)" file: it cannot be installed.
+1. Download `mc-pwa-1.3.3.zip` from [Releases](../../releases/latest). Do not use the automatic "Source code (zip)" file: it cannot be installed.
 2. In EspoCRM open **Administration → Extensions → Upload**, choose the ZIP, then click **Install**. The installer rebuilds the system itself. Run **Administration → Rebuild** only if something looks wrong.
 3. Open **Administration → PWA → PWA Settings**. Turn on PWA and, if you want them, push notifications and the bottom navigation bar.
 
